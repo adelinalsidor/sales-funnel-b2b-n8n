@@ -8,7 +8,7 @@
 
 **Output:** one `.md` file per company in `oferte-de-aprobat/`, with `status: în așteptare` (pending) in its header. The owner changes it to `aprobat` or `respins`. The Deal moves to "Draft email".
 
-**n8n nodes:** `Pregateste prompt oferta` → `Scrie oferta Claude` → `Pregateste fisier aprobare` → `Salveaza oferta pentru aprobare`.
+**n8n nodes:** `Build offer prompt` → `Write offer (Claude)` → `Prepare approval file` → `Save offer for approval`.
 
 **Prompt (verbatim from the flow, in Romanian):**
 

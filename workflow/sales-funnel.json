@@ -7,7 +7,7 @@
       "typeVersion": 1,
       "position": [
         -512,
-        -8
+        -16
       ],
       "id": "dc3a2369-f492-4587-bcb4-7cbe51cdd13c",
       "name": "When clicking 'Execute workflow'"
@@ -21,7 +21,7 @@
       "typeVersion": 1.1,
       "position": [
         -288,
-        -8
+        -16
       ],
       "id": "a65e5e08-7d26-42af-8132-74d9452bc937",
       "name": "Read/Write Files from Disk"
@@ -34,7 +34,7 @@
       "typeVersion": 1.1,
       "position": [
         -64,
-        -8
+        -16
       ],
       "id": "6e977c55-2c9c-43a7-bd3f-d52ffc11f3a6",
       "name": "Extract from File"
@@ -44,12 +44,12 @@
         "jsCode": "// Aruncă paginile-director și listicle-urile (\"Top 10 firme...\", clasamente, recenzii)\nconst badName = /(\\btop\\s*\\d+|cele mai bune|cei mai buni|clasament|\\bdirector(y)?\\b|lista de|recenzii|\\breviews?\\b|compara)/i;\nconst badPath = /\\/(top[-_]?\\d*|clasament|director|lista|reviews?|recenzii)(\\/|$|-)/i;\nconst out = [];\nfor (const item of $input.all()) {\n  const c = item.json;\n  let path = '';\n  try { path = new URL(c.Website).pathname; } catch (e) {}\n  if (!c.Website || badName.test(String(c.Nume || '')) || badPath.test(path)) {\n    console.log('Respinsa (pagina-director/listicle): ' + c.Nume);\n    continue;\n  }\n  out.push({ json: c });\n}\nreturn out;\n"
       },
       "id": "bfc074b3-9666-41f5-a34d-ff39649b6bb0",
-      "name": "Filtru pagini-director",
+      "name": "Directory-page filter",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         160,
-        -8
+        -16
       ]
     },
     {
@@ -57,12 +57,12 @@
         "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const c = item.json;\n  const prompt = `Esti un expert in calificarea prospectilor B2B pentru o firma mica de servicii AI/automatizari pentru IMM-uri. Analizeaza compania de mai jos si raspunde STRICT cu un JSON valid, fara alt text in afara lui, de forma exacta: {\"scor\": <numar 1-10>, \"eticheta\": \"calificat sau necalificat\", \"motiv\": \"un motiv scurt, o propozitie\"}.\n\nCompanie: ${c.Nume}\nWebsite: ${c.Website}\nDescriere: ${c.Descriere}\nIndustrie: ${c.Industrie}\n\nReguli: pragul de calificare este scor mai mare sau egal cu 6. Companiile mici (IMM), fara semne vizibile de automatizare/chatbot pe site, sunt candidati mai buni.`;\n\n  const body = {\n    model: \"claude-haiku-4-5\",\n    max_tokens: 300,\n    temperature: 0,\n    messages: [{ role: \"user\", content: prompt }]\n  };\n\n  results.push({\n    json: {\n      Nume: c.Nume,\n      Website: c.Website,\n      Descriere: c.Descriere,\n      Industrie: c.Industrie,\n      _claudeRequestBody: JSON.stringify(body)\n    }\n  });\n}\nreturn results;"
       },
       "id": "f0b39ab6-c00c-4316-9940-0c847cb15848",
-      "name": "Pregateste prompt Claude",
+      "name": "Build scoring prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         384,
-        -8
+        -16
       ]
     },
     {
@@ -89,12 +89,12 @@
         }
       },
       "id": "95d69fec-8ac5-456c-9f18-3362eb560884",
-      "name": "Scoreaza ICP Claude",
+      "name": "Score ICP (Claude)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         608,
-        -8
+        -16
       ],
       "retryOnFail": true,
       "credentials": {
@@ -107,15 +107,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Pregateste prompt Claude').all();\nconst responses = $input.all();\nconst results = [];\nfor (let i = 0; i < responses.length; i++) {\n  const resp = responses[i].json;\n  const orig = originals[i].json;\n  let scor = null, eticheta = \"eroare\", motiv = \"nu s-a putut interpreta raspunsul\";\n  try {\n    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('\\n');\n    const match = text.match(/\\{[\\s\\S]*\\}/);\n    const parsed = JSON.parse(match[0]);\n    scor = parsed.scor;\n    eticheta = String(parsed.eticheta).trim().toLowerCase();\n    motiv = parsed.motiv;\n  } catch (e) {\n    motiv = \"eroare la parsare: \" + e.message;\n  }\n\n  let domain = \"\";\n  try {\n    let urlStr = orig.Website || \"\";\n    if (!/^https?:\\/\\//i.test(urlStr)) { urlStr = \"https://\" + urlStr; }\n    domain = new URL(urlStr).hostname.replace(/^www\\./i, \"\");\n  } catch (e) {\n    domain = (orig.Website || \"\").replace(/^https?:\\/\\//i, \"\").replace(/^www\\./i, \"\").split(\"/\")[0];\n  }\n\n  const hubspotBody = {\n    properties: {\n      name: orig.Nume,\n      domain: domain,\n      description: `ICP: ${eticheta} (scor ${scor}/10) - ${motiv}`\n    }\n  };\n  const searchBody = {\n    filterGroups: [{ filters: [{ propertyName: \"domain\", operator: \"EQ\", value: domain }] }],\n    properties: [\"domain\", \"name\"],\n    limit: 1\n  };\n\n  results.push({\n    json: {\n      Nume: orig.Nume,\n      Website: orig.Website,\n      Descriere: orig.Descriere,\n      Industrie: orig.Industrie,\n      Domain: domain,\n      ScorICP: scor,\n      EtichetaICP: eticheta,\n      MotivICP: motiv,\n      _hubspotRequestBody: JSON.stringify(hubspotBody),\n      _searchBody: JSON.stringify(searchBody)\n    }\n  });\n}\nreturn results;\n"
+        "jsCode": "const originals = $('Build scoring prompt').all();\nconst responses = $input.all();\nconst results = [];\nfor (let i = 0; i < responses.length; i++) {\n  const resp = responses[i].json;\n  const orig = originals[i].json;\n  let scor = null, eticheta = \"eroare\", motiv = \"nu s-a putut interpreta raspunsul\";\n  try {\n    const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('\\n');\n    const match = text.match(/\\{[\\s\\S]*\\}/);\n    const parsed = JSON.parse(match[0]);\n    scor = parsed.scor;\n    eticheta = String(parsed.eticheta).trim().toLowerCase();\n    motiv = parsed.motiv;\n  } catch (e) {\n    motiv = \"eroare la parsare: \" + e.message;\n  }\n\n  let domain = \"\";\n  try {\n    let urlStr = orig.Website || \"\";\n    if (!/^https?:\\/\\//i.test(urlStr)) { urlStr = \"https://\" + urlStr; }\n    domain = new URL(urlStr).hostname.replace(/^www\\./i, \"\");\n  } catch (e) {\n    domain = (orig.Website || \"\").replace(/^https?:\\/\\//i, \"\").replace(/^www\\./i, \"\").split(\"/\")[0];\n  }\n\n  const hubspotBody = {\n    properties: {\n      name: orig.Nume,\n      domain: domain,\n      description: `ICP: ${eticheta} (scor ${scor}/10) - ${motiv}`\n    }\n  };\n  const searchBody = {\n    filterGroups: [{ filters: [{ propertyName: \"domain\", operator: \"EQ\", value: domain }] }],\n    properties: [\"domain\", \"name\"],\n    limit: 1\n  };\n\n  results.push({\n    json: {\n      Nume: orig.Nume,\n      Website: orig.Website,\n      Descriere: orig.Descriere,\n      Industrie: orig.Industrie,\n      Domain: domain,\n      ScorICP: scor,\n      EtichetaICP: eticheta,\n      MotivICP: motiv,\n      _hubspotRequestBody: JSON.stringify(hubspotBody),\n      _searchBody: JSON.stringify(searchBody)\n    }\n  });\n}\nreturn results;\n"
       },
       "id": "5ef268dd-3b95-4b26-b3a5-79bd493b1dcc",
-      "name": "Interpreteaza scor si pregateste HubSpot",
+      "name": "Parse score, prepare HubSpot data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         832,
-        -8
+        -16
       ]
     },
     {
@@ -139,12 +139,12 @@
         }
       },
       "id": "93e5901d-a087-410e-aeb9-066f2dcb59a5",
-      "name": "Cauta Company in HubSpot",
+      "name": "Search Company in HubSpot",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1056,
-        -8
+        -16
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -159,15 +159,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Dacă HubSpot a găsit deja firma (după domeniu), păstrăm id-ul => nodul următor face PATCH (actualizare), altfel POST (creare)\nconst originals = $('Interpreteaza scor si pregateste HubSpot').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  return { json: { ...orig, _companyId: id, _existaInHubSpot: !!id, _cautareEsuata: !!(r.json && r.json.error) } };\n});\n"
+        "jsCode": "// Dacă HubSpot a găsit deja firma (după domeniu), păstrăm id-ul => nodul următor face PATCH (actualizare), altfel POST (creare)\nconst originals = $('Parse score, prepare HubSpot data').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  return { json: { ...orig, _companyId: id, _existaInHubSpot: !!id, _cautareEsuata: !!(r.json && r.json.error) } };\n});\n"
       },
       "id": "eb7d3e41-60e7-4a24-8809-84551b5ddd4a",
-      "name": "Decide creare sau actualizare",
+      "name": "Decide create or update",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1280,
-        -8
+        -16
       ]
     },
     {
@@ -196,7 +196,7 @@
       "typeVersion": 4.2,
       "position": [
         1504,
-        -8
+        -16
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -211,15 +211,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Decide creare sau actualizare').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const id = r.json && r.json.id ? String(r.json.id) : null;\n  const calificat = String(orig.EtichetaICP).toLowerCase() === 'calificat';\n  const query = `contact echipa despre noi ${orig.Domain}`;\n  return {\n    json: {\n      ...orig,\n      CompanyId: id,\n      _hubspotOk: !!id,\n      _dealName: `${orig.Domain} — Funnel B2B`,\n      _dealSearchBody: JSON.stringify({\n        filterGroups: [{ filters: [{ propertyName: 'dealname', operator: 'EQ', value: `${orig.Domain} — Funnel B2B` }] }],\n        properties: ['dealname', 'dealstage'],\n        limit: 1\n      }),\n      _calificat: calificat,\n      _firecrawlBody: JSON.stringify({ query, limit: 3, includeDomains: [orig.Domain], scrapeOptions: { formats: ['markdown'], onlyMainContent: true } })\n    }\n  };\n});\n"
+        "jsCode": "const originals = $('Decide create or update').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const id = r.json && r.json.id ? String(r.json.id) : null;\n  const calificat = String(orig.EtichetaICP).toLowerCase() === 'calificat';\n  const query = `contact echipa despre noi ${orig.Domain}`;\n  return {\n    json: {\n      ...orig,\n      CompanyId: id,\n      _hubspotOk: !!id,\n      _dealName: `${orig.Domain} — Funnel B2B`,\n      _dealSearchBody: JSON.stringify({\n        filterGroups: [{ filters: [{ propertyName: 'dealname', operator: 'EQ', value: `${orig.Domain} — Funnel B2B` }] }],\n        properties: ['dealname', 'dealstage'],\n        limit: 1\n      }),\n      _calificat: calificat,\n      _firecrawlBody: JSON.stringify({ query, limit: 3, includeDomains: [orig.Domain], scrapeOptions: { formats: ['markdown'], onlyMainContent: true } })\n    }\n  };\n});\n"
       },
       "id": "7a666f73-414c-4e88-95ff-dd9560d64a76",
-      "name": "Dupa Company pregateste",
+      "name": "After Company prepare next steps",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1728,
-        -8
+        -16
       ]
     },
     {
@@ -243,12 +243,12 @@
         }
       },
       "id": "d910d7e3-4ca1-4cd2-890a-a6d39b04fed6",
-      "name": "Cauta Deal in HubSpot",
+      "name": "Search Deal in HubSpot",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1952,
-        -8
+        -16
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -263,15 +263,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Deal existent (găsit după nume) => PATCH fără să-i atingem etapa; altfel POST în etapa \"Nou\", asociat cu firma\nconst originals = $('Dupa Company pregateste').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  const create = { properties: { dealname: o._dealName, pipeline: '4207689945', dealstage: '6186488008' } };\n  if (o.CompanyId) {\n    create.associations = [{ to: { id: o.CompanyId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 5 }] }];\n  }\n  const body = id ? { properties: { dealname: o._dealName } } : create;\n  return { json: { ...o, _dealId: id, _dealBody: JSON.stringify(body) } };\n});\n"
+        "jsCode": "// Deal existent (găsit după nume) => PATCH fără să-i atingem etapa; altfel POST în etapa \"Nou\", asociat cu firma\nconst originals = $('After Company prepare next steps').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  const create = { properties: { dealname: o._dealName, pipeline: '4207689945', dealstage: '6186488008' } };\n  if (o.CompanyId) {\n    create.associations = [{ to: { id: o.CompanyId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 5 }] }];\n  }\n  const body = id ? { properties: { dealname: o._dealName } } : create;\n  return { json: { ...o, _dealId: id, _dealBody: JSON.stringify(body) } };\n});\n"
       },
       "id": "e659ddf0-378a-4f35-a195-bd724e887954",
-      "name": "Decide deal",
+      "name": "Decide create or update Deal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2176,
-        -8
+        -16
       ]
     },
     {
@@ -295,12 +295,12 @@
         }
       },
       "id": "5107ac61-4f02-4522-9385-252228db8309",
-      "name": "Upsert Deal (Nou)",
+      "name": "Upsert Deal (New)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         2400,
-        -8
+        -16
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -315,15 +315,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Decide deal').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const id = r.json && r.json.id ? String(r.json.id) : null;\n  return {\n    json: {\n      ...o,\n      DealId: id,\n      _dealUrl: 'https://api.hubapi.com/crm/v3/objects/deals/' + (id || 0),\n      _dealCalificatBody: JSON.stringify({ properties: { dealstage: '6186488009' } }),\n      _dealDraftBody: JSON.stringify({ properties: { dealstage: '6186488010' } })\n    }\n  };\n});\n"
+        "jsCode": "const originals = $('Decide create or update Deal').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const id = r.json && r.json.id ? String(r.json.id) : null;\n  return {\n    json: {\n      ...o,\n      DealId: id,\n      _dealUrl: 'https://api.hubapi.com/crm/v3/objects/deals/' + (id || 0),\n      _dealCalificatBody: JSON.stringify({ properties: { dealstage: '6186488009' } }),\n      _dealDraftBody: JSON.stringify({ properties: { dealstage: '6186488010' } })\n    }\n  };\n});\n"
       },
       "id": "2a9effe1-7001-4c47-91a1-bd3b454112bf",
-      "name": "Dupa Deal",
+      "name": "After Deal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2624,
-        -8
+        -16
       ]
     },
     {
@@ -352,12 +352,12 @@
         "options": {}
       },
       "id": "facf0b2d-0145-4280-8787-f9a8b5a3b226",
-      "name": "Este calificat",
+      "name": "Is qualified?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2848,
-        -8
+        -384,
+        512
       ]
     },
     {
@@ -381,12 +381,12 @@
         }
       },
       "id": "c314eb60-0002-4db9-b078-d5a88c26fd0e",
-      "name": "Muta Deal in Calificat",
+      "name": "Move Deal to Qualified",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3072,
-        -8
+        -160,
+        512
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -401,15 +401,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Dupa Deal').all().filter(x => x.json._calificat);\nreturn $input.all().map((r, i) => ({\n  json: { ...originals[i].json, _dealCalificat: !(r.json && r.json.error) }\n}));\n"
+        "jsCode": "const originals = $('After Deal').all().filter(x => x.json._calificat);\nreturn $input.all().map((r, i) => ({\n  json: { ...originals[i].json, _dealCalificat: !(r.json && r.json.error) }\n}));\n"
       },
       "id": "12c3a574-62ad-4e64-ad86-36329f814b84",
-      "name": "Dupa Calificat",
+      "name": "After qualified",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3296,
-        -8
+        64,
+        512
       ]
     },
     {
@@ -433,12 +433,12 @@
         }
       },
       "id": "3922b99c-267e-4f80-9d66-8f58fe7dc409",
-      "name": "Cauta pagini contact Firecrawl",
+      "name": "Search contact pages (Firecrawl)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3520,
-        -8
+        288,
+        512
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -453,15 +453,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Dupa Calificat').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  const siteText = pages\n    .map(p => `## ${p.url}\\n${String(p.markdown || '').slice(0, 5000)}`)\n    .join('\\n\\n')\n    .slice(0, 12000);\n  const prompt = `Din textul paginilor de mai jos ale firmei \"${orig.Nume}\", extrage persoana de decizie cea mai potrivita (fondator, administrator, director, manager, partener, medic-sef). Raspunde STRICT cu un JSON valid, fara alt text, de forma exacta: {\"gasit\": true sau false, \"nume\": \"\", \"rol\": \"\", \"email\": \"\", \"telefon\": \"\", \"sursa\": \"url-ul paginii\"}.\nReguli: NU inventa nimic. Daca pe pagini nu apare un nume de persoana, pune gasit=false si lasa campurile goale. Pune email doar daca apare explicit in text (poate fi si un email de contact al firmei).\n\nTEXT PAGINI:\n${siteText || '(nu s-a gasit niciun text)'}`;\n  return {\n    json: {\n      ...orig,\n      _siteText: siteText,\n      _paginiGasite: pages.length,\n      _claudeContactBody: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 400, temperature: 0, messages: [{ role: 'user', content: prompt }] })\n    }\n  };\n});\n"
+        "jsCode": "const originals = $('After qualified').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  const siteText = pages\n    .map(p => `## ${p.url}\\n${String(p.markdown || '').slice(0, 5000)}`)\n    .join('\\n\\n')\n    .slice(0, 12000);\n  const prompt = `Din textul paginilor de mai jos ale firmei \"${orig.Nume}\", extrage persoana de decizie cea mai potrivita (fondator, administrator, director, manager, partener, medic-sef). Raspunde STRICT cu un JSON valid, fara alt text, de forma exacta: {\"gasit\": true sau false, \"nume\": \"\", \"rol\": \"\", \"email\": \"\", \"telefon\": \"\", \"sursa\": \"url-ul paginii\"}.\nReguli: NU inventa nimic. Daca pe pagini nu apare un nume de persoana, pune gasit=false si lasa campurile goale. Pune email doar daca apare explicit in text (poate fi si un email de contact al firmei).\n\nTEXT PAGINI:\n${siteText || '(nu s-a gasit niciun text)'}`;\n  return {\n    json: {\n      ...orig,\n      _siteText: siteText,\n      _paginiGasite: pages.length,\n      _claudeContactBody: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 400, temperature: 0, messages: [{ role: 'user', content: prompt }] })\n    }\n  };\n});\n"
       },
       "id": "eb76393f-a3f7-41f9-84af-29332d2699aa",
-      "name": "Pregateste prompt contact",
+      "name": "Build contact prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3744,
-        -8
+        2304,
+        512
       ]
     },
     {
@@ -488,12 +488,12 @@
         }
       },
       "id": "d3a92ecf-5529-4d7d-b25c-7898cf315ed6",
-      "name": "Extrage contact Claude",
+      "name": "Extract contact (Claude)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3968,
-        -8
+        -160,
+        1088
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -508,15 +508,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Pregateste prompt contact').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  let c = { gasit: false, nume: '', rol: '', email: '', telefon: '', sursa: '' };\n  try {\n    const text = r.json.content.filter(b => b.type === 'text').map(b => b.text).join('\\n');\n    c = { ...c, ...JSON.parse(text.match(/\\{[\\s\\S]*\\}/)[0]) };\n  } catch (e) {}\n  const email = String(c.email || '').trim().toLowerCase();\n  const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n  const nume = String(c.nume || '').trim();\n  const gasit = c.gasit === true && nume.length > 0;\n  const parts = nume.split(/\\s+/);\n  const props = { firstname: parts[0] || '', lastname: parts.slice(1).join(' '), jobtitle: String(c.rol || '') };\n  if (c.telefon) props.phone = String(c.telefon);\n  const areEmail = gasit && emailOk;\n  return {\n    json: {\n      ...orig,\n      Contact: { nume: gasit ? nume : '', rol: gasit ? String(c.rol || '') : '', email: emailOk ? email : '', telefon: String(c.telefon || ''), sursa: String(c.sursa || '') },\n      ContactStatus: gasit ? (emailOk ? 'gasit' : 'gasit-fara-email') : 'negasit',\n      _areEmail: areEmail,\n      _contactBody: JSON.stringify({ inputs: [{ idProperty: 'email', id: email, properties: props }] })\n    }\n  };\n});\n"
+        "jsCode": "const originals = $('Build contact prompt').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  let c = { gasit: false, nume: '', rol: '', email: '', telefon: '', sursa: '' };\n  try {\n    const text = r.json.content.filter(b => b.type === 'text').map(b => b.text).join('\\n');\n    c = { ...c, ...JSON.parse(text.match(/\\{[\\s\\S]*\\}/)[0]) };\n  } catch (e) {}\n  const email = String(c.email || '').trim().toLowerCase();\n  const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n  const nume = String(c.nume || '').trim();\n  const gasit = c.gasit === true && nume.length > 0;\n  const parts = nume.split(/\\s+/);\n  const props = { firstname: parts[0] || '', lastname: parts.slice(1).join(' '), jobtitle: String(c.rol || '') };\n  if (c.telefon) props.phone = String(c.telefon);\n  const areEmail = gasit && emailOk;\n  return {\n    json: {\n      ...orig,\n      Contact: { nume: gasit ? nume : '', rol: gasit ? String(c.rol || '') : '', email: emailOk ? email : '', telefon: String(c.telefon || ''), sursa: String(c.sursa || '') },\n      ContactStatus: gasit ? (emailOk ? 'gasit' : 'gasit-fara-email') : 'negasit',\n      _areEmail: areEmail,\n      _contactBody: JSON.stringify({ inputs: [{ idProperty: 'email', id: email, properties: props }] })\n    }\n  };\n});\n"
       },
       "id": "7e64bb92-de4c-4c44-aca9-0d838b4635eb",
-      "name": "Interpreteaza contact",
+      "name": "Parse contact",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4192,
-        -8
+        64,
+        1088
       ]
     },
     {
@@ -545,12 +545,12 @@
         "options": {}
       },
       "id": "f8f74c57-3cfb-4419-b2c2-b31b4ec970d8",
-      "name": "Are email",
+      "name": "Has email?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        4416,
-        -8
+        288,
+        1088
       ]
     },
     {
@@ -578,8 +578,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4640,
-        -80
+        512,
+        1008
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -594,15 +594,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Are email').all(0); // doar ramura \"da\"\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const res = r.json && r.json.results && r.json.results[0];\n  const contactId = res ? String(res.id) : null;\n  const ok = contactId && orig.CompanyId;\n  return {\n    json: {\n      ...orig,\n      ContactId: contactId,\n      _assocUrl: `https://api.hubapi.com/crm/v4/objects/contacts/${ok ? contactId : 0}/associations/default/companies/${ok ? orig.CompanyId : 0}`\n    }\n  };\n});\n"
+        "jsCode": "const originals = $('Has email?').all(0); // doar ramura \"da\"\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const res = r.json && r.json.results && r.json.results[0];\n  const contactId = res ? String(res.id) : null;\n  const ok = contactId && orig.CompanyId;\n  return {\n    json: {\n      ...orig,\n      ContactId: contactId,\n      _assocUrl: `https://api.hubapi.com/crm/v4/objects/contacts/${ok ? contactId : 0}/associations/default/companies/${ok ? orig.CompanyId : 0}`\n    }\n  };\n});\n"
       },
       "id": "a1e370b3-5c7d-4b78-9397-0ce2cf09f60f",
-      "name": "Prepara asociere",
+      "name": "Prepare association",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4864,
-        -80
+        736,
+        1008
       ]
     },
     {
@@ -622,12 +622,12 @@
         }
       },
       "id": "798e8e97-cd81-4d0f-9a1c-d8e6e725ea81",
-      "name": "Asociaza Contact cu Company",
+      "name": "Associate Contact with Company",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        5088,
-        -80
+        960,
+        1008
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -642,26 +642,26 @@
     },
     {
       "parameters": {
-        "jsCode": "const originals = $('Prepara asociere').all();\nreturn $input.all().map((r, i) => ({\n  json: { ...originals[i].json, _asociat: !(r.json && r.json.error) }\n}));\n"
+        "jsCode": "const originals = $('Prepare association').all();\nreturn $input.all().map((r, i) => ({\n  json: { ...originals[i].json, _asociat: !(r.json && r.json.error) }\n}));\n"
       },
       "id": "1eb13157-13ce-4060-93f5-9223a12fd813",
-      "name": "Dupa asociere",
+      "name": "After association",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5312,
-        -80
+        1184,
+        1008
       ]
     },
     {
       "parameters": {},
       "id": "338b22cf-1d6d-4dd7-8b1b-a33b962b9a40",
-      "name": "Unifica",
+      "name": "Merge branches",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
       "position": [
-        5536,
-        -8
+        1408,
+        1088
       ]
     },
     {
@@ -669,12 +669,12 @@
         "jsCode": "return $input.all().map(item => {\n  const c = item.json;\n  const areNume = c.Contact && c.Contact.nume;\n  const salut = areNume ? `Bună ziua, ${c.Contact.nume},` : 'Bună ziua,';\n  const contactInfo = areNume\n    ? `${c.Contact.nume} (${c.Contact.rol || 'rol necunoscut'})`\n    : 'NEGĂSIT — folosește un salut generic, fără nume';\n  const prompt = `Ești Adelina Sidor, consultant care oferă servicii de automatizare și AI pentru IMM-uri (de exemplu: chatbot pe site, automatizarea răspunsurilor la clienți, integrare CRM, rapoarte automate). Scrie un email de prezentare și conținutul unei oferte personalizate pentru firma de mai jos, în limba română, cu diacritice, ton profesionist și cald.\n\nREGULI STRICTE:\n- Nu inventa clienți, cifre, statistici, prețuri sau servicii pe care textul de pe site nu le menționează.\n- Fiecare pain-point trebuie legat de un detaliu concret din textul de pe site. Dacă textul nu are destule detalii, scrie exact „DETALII INSUFICIENTE pe site\" în loc să inventezi.\n- Emailul are maxim 150 de cuvinte, fără formulări generice de tip „am observat compania dumneavoastră\".\n- La prețul din ofertă scrie exact: [PREȚ DE COMPLETAT de Adelina].\n\nDATE FIRMĂ:\nNume: ${c.Nume}\nWebsite: ${c.Website}\nIndustrie: ${c.Industrie}\nScor ICP: ${c.ScorICP}/10 — ${c.MotivICP}\nPersoană de contact: ${contactInfo}\n\nTEXT DE PE SITE:\n${c._siteText || '(niciun text găsit)'}\n\nFORMAT EXACT AL RĂSPUNSULUI (fără alt text în afara lui):\n### SUBIECT\n(o singură linie)\n### EMAIL\n(începe cu: ${salut} — semnează: Adelina Sidor)\n### PAIN POINTS\n(2-3 puncte cu liniuță)\n### OFERTA\n(secțiuni cu titluri: Situația actuală; Ce propunem; Pași de implementare; Rezultate așteptate; Investiție; Pasul următor)`;\n  return {\n    json: {\n      ...c,\n      _claudeOfertaBody: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 6000, messages: [{ role: 'user', content: prompt }] })\n    }\n  };\n});\n"
       },
       "id": "9d7e4cd8-c65d-4642-949b-187918ccda07",
-      "name": "Pregateste prompt oferta",
+      "name": "Build offer prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5760,
-        -8
+        1632,
+        1088
       ]
     },
     {
@@ -701,12 +701,12 @@
         }
       },
       "id": "6e6d7bc4-8990-45b8-859b-fbd1c88fc66c",
-      "name": "Scrie oferta Claude",
+      "name": "Write offer (Claude)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        5984,
-        -8
+        1856,
+        1088
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -721,15 +721,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const DIR = 'C:\\\\Users\\\\Adi\\\\Curs-AI-Accelerator\\\\PROIECTELE MELE\\\\FUNNEL DE VANZARI\\\\oferte-de-aprobat';\nconst originals = $('Pregateste prompt oferta').all();\nconst items = $input.all();\nconst out = [];\nconst q = v => '\"' + String(v == null ? '' : v).replace(/\"/g, '\\\\\"') + '\"';\nfor (let i = 0; i < items.length; i++) {\n  const r = items[i].json;\n  const c = originals[i].json;\n  let text = '';\n  try { text = r.content.filter(b => b.type === 'text').map(b => b.text).join('\\n'); } catch (e) {}\n  if (r.stop_reason === 'max_tokens') console.log('Oferta taiata (max_tokens) pentru: ' + c.Nume);\n  if (!text) { console.log('Fara oferta generata pentru: ' + c.Nume); continue; }\n  const slug = String(c.Domain || 'firma').replace(/[^a-z0-9]+/gi, '-');\n  const front = [\n    '---',\n    'status: în așteptare',\n    'firma: ' + q(c.Nume),\n    'website: ' + q(c.Website),\n    'scor_icp: ' + c.ScorICP,\n    'contact: ' + q(c.Contact && c.Contact.nume),\n    'rol_contact: ' + q(c.Contact && c.Contact.rol),\n    'email_contact: ' + q(c.Contact && c.Contact.email),\n    'contact_status: ' + c.ContactStatus,\n    'hubspot_company_id: ' + q(c.CompanyId),\n    'hubspot_deal_id: ' + q(c.DealId),\n    'generat: ' + new Date().toISOString().slice(0, 10),\n    '---'\n  ].join('\\n');\n  const content = front + '\\n\\n> DRAFT — neaprobat. Citește, apoi schimbă `status` în `aprobat` sau `respins` (sus, în capul fișierului).\\n\\n' + text + '\\n';\n  const bin = await this.helpers.prepareBinaryData(Buffer.from(content, 'utf8'), slug + '.md', 'text/markdown');\n  out.push({\n    json: { Nume: c.Nume, _fileName: DIR + '\\\\' + slug + '.md', DealId: c.DealId, _dealUrl: c._dealUrl, _dealDraftBody: c._dealDraftBody },\n    binary: { data: bin }\n  });\n}\nreturn out;\n"
+        "jsCode": "const DIR = 'C:\\\\Users\\\\Adi\\\\Curs-AI-Accelerator\\\\PROIECTELE MELE\\\\FUNNEL DE VANZARI\\\\oferte-de-aprobat';\nconst originals = $('Build offer prompt').all();\nconst items = $input.all();\nconst out = [];\nconst q = v => '\"' + String(v == null ? '' : v).replace(/\"/g, '\\\\\"') + '\"';\nfor (let i = 0; i < items.length; i++) {\n  const r = items[i].json;\n  const c = originals[i].json;\n  let text = '';\n  try { text = r.content.filter(b => b.type === 'text').map(b => b.text).join('\\n'); } catch (e) {}\n  if (r.stop_reason === 'max_tokens') console.log('Oferta taiata (max_tokens) pentru: ' + c.Nume);\n  if (!text) { console.log('Fara oferta generata pentru: ' + c.Nume); continue; }\n  const slug = String(c.Domain || 'firma').replace(/[^a-z0-9]+/gi, '-');\n  const front = [\n    '---',\n    'status: în așteptare',\n    'firma: ' + q(c.Nume),\n    'website: ' + q(c.Website),\n    'scor_icp: ' + c.ScorICP,\n    'contact: ' + q(c.Contact && c.Contact.nume),\n    'rol_contact: ' + q(c.Contact && c.Contact.rol),\n    'email_contact: ' + q(c.Contact && c.Contact.email),\n    'contact_status: ' + c.ContactStatus,\n    'hubspot_company_id: ' + q(c.CompanyId),\n    'hubspot_deal_id: ' + q(c.DealId),\n    'generat: ' + new Date().toISOString().slice(0, 10),\n    '---'\n  ].join('\\n');\n  const content = front + '\\n\\n> DRAFT — neaprobat. Citește, apoi schimbă `status` în `aprobat` sau `respins` (sus, în capul fișierului).\\n\\n' + text + '\\n';\n  const bin = await this.helpers.prepareBinaryData(Buffer.from(content, 'utf8'), slug + '.md', 'text/markdown');\n  out.push({\n    json: { Nume: c.Nume, _fileName: DIR + '\\\\' + slug + '.md', DealId: c.DealId, _dealUrl: c._dealUrl, _dealDraftBody: c._dealDraftBody },\n    binary: { data: bin }\n  });\n}\nreturn out;\n"
       },
       "id": "376f6b5a-f6a6-4e23-9a44-be030aa73c8a",
-      "name": "Pregateste fisier aprobare",
+      "name": "Prepare approval file",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6208,
-        -8
+        2080,
+        1088
       ]
     },
     {
@@ -739,25 +739,25 @@
         "options": {}
       },
       "id": "eda7ae35-f73d-46db-940b-22128e014843",
-      "name": "Salveaza oferta pentru aprobare",
+      "name": "Save offer for approval",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6432,
-        -8
+        2304,
+        1088
       ]
     },
     {
       "parameters": {
-        "jsCode": "// După scrierea fișierului: păstrăm datele Deal-ului ca să-l mutăm în \"Draft email\"\nconst originals = $('Pregateste fisier aprobare').all();\nreturn $input.all().map((r, i) => ({ json: { ...originals[i].json } }));\n"
+        "jsCode": "// După scrierea fișierului: păstrăm datele Deal-ului ca să-l mutăm în \"Draft email\"\nconst originals = $('Prepare approval file').all();\nreturn $input.all().map((r, i) => ({ json: { ...originals[i].json } }));\n"
       },
       "id": "66fc938d-a34c-4fe9-afd3-1bbf791ace3c",
-      "name": "Prepara mutare Draft",
+      "name": "Prepare move to Draft",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6656,
-        -8
+        2528,
+        1088
       ]
     },
     {
@@ -781,12 +781,12 @@
         }
       },
       "id": "a476626b-d653-4c9a-96c1-5a5154f2d176",
-      "name": "Muta Deal in Draft email",
+      "name": "Move Deal to Draft email",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        6880,
-        -8
+        2752,
+        1088
       ],
       "retryOnFail": true,
       "maxTries": 2,
@@ -800,37 +800,19 @@
       "onError": "continueRegularOutput"
     },
     {
+      "parameters": {
+        "jsCode": "// Păstrăm rezultatele căutării și pregătim cererea \"map\" (harta site-ului, fără să depindă de index)\nconst originals = $('After qualified').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  return { json: {\n    _domain: orig.Domain,\n    _searchPages: pages,\n    _mapBody: JSON.stringify({ url: 'https://' + orig.Domain, search: 'contact echipa despre noi', limit: 30 })\n  } };\n});"
+      },
       "id": "0cc54f85-f7d8-493e-be13-9ab5dc872e72",
-      "name": "Pregateste harta",
+      "name": "Prepare site-map request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3520,
-        420
-      ],
-      "parameters": {
-        "jsCode": "// Păstrăm rezultatele căutării și pregătim cererea \"map\" (harta site-ului, fără să depindă de index)\nconst originals = $('Dupa Calificat').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  return { json: {\n    _domain: orig.Domain,\n    _searchPages: pages,\n    _mapBody: JSON.stringify({ url: 'https://' + orig.Domain, search: 'contact echipa despre noi', limit: 30 })\n  } };\n});"
-      }
+        512,
+        512
+      ]
     },
     {
-      "id": "3208d36f-3f6b-4d86-937f-cc9af78b3937",
-      "name": "Harta site Firecrawl",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3780,
-        420
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 10000,
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "gv6bkCmMqj7rz1Mh",
-          "name": "Firecrawl - Bearer"
-        }
-      },
       "parameters": {
         "method": "POST",
         "url": "https://api.firecrawl.dev/v2/map",
@@ -841,48 +823,48 @@
         "rawContentType": "application/json",
         "body": "={{ $json._mapBody }}",
         "options": {
-          "timeout": 90000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 7000
             }
-          }
+          },
+          "timeout": 90000
         }
-      }
-    },
-    {
-      "id": "d44e386d-aa2c-49bb-bdc0-b10f830aa275",
-      "name": "Pregateste pagina principala",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4040,
-        420
-      ],
-      "parameters": {
-        "jsCode": "// Pregătește citirea paginii principale (cu toate linkurile, inclusiv din meniu)\nconst prev = $('Pregateste harta').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const mapLinks = ((r.json && r.json.links) || []).map(l => typeof l === 'string' ? l : (l && l.url)).filter(Boolean);\n  return { json: { _domain: p._domain, _searchPages: p._searchPages, _mapLinks: mapLinks,\n    _scrapeHome: JSON.stringify({ url: 'https://' + p._domain + '/', formats: ['markdown', 'links'], onlyMainContent: false }) } };\n});"
-      }
-    },
-    {
-      "id": "e245ac89-0d2b-4de4-83d0-a56367ec1ff2",
-      "name": "Citeste pagina principala Firecrawl",
+      },
+      "id": "3208d36f-3f6b-4d86-937f-cc9af78b3937",
+      "name": "Site map (Firecrawl)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4300,
-        420
+        736,
+        512
       ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 10000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "gv6bkCmMqj7rz1Mh",
           "name": "Firecrawl - Bearer"
         }
       },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pregătește citirea paginii principale (cu toate linkurile, inclusiv din meniu)\nconst prev = $('Prepare site-map request').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const mapLinks = ((r.json && r.json.links) || []).map(l => typeof l === 'string' ? l : (l && l.url)).filter(Boolean);\n  return { json: { _domain: p._domain, _searchPages: p._searchPages, _mapLinks: mapLinks,\n    _scrapeHome: JSON.stringify({ url: 'https://' + p._domain + '/', formats: ['markdown', 'links'], onlyMainContent: false }) } };\n});"
+      },
+      "id": "d44e386d-aa2c-49bb-bdc0-b10f830aa275",
+      "name": "Prepare homepage read",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        512
+      ]
+    },
+    {
       "parameters": {
         "method": "POST",
         "url": "https://api.firecrawl.dev/v2/scrape",
@@ -893,48 +875,48 @@
         "rawContentType": "application/json",
         "body": "={{ $json._scrapeHome }}",
         "options": {
-          "timeout": 90000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 7000
             }
-          }
+          },
+          "timeout": 90000
         }
-      }
-    },
-    {
-      "id": "9ee8aad1-bded-4ca3-92f0-dae36185e8e2",
-      "name": "Alege pagini",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4560,
-        420
-      ],
-      "parameters": {
-        "jsCode": "// Alege pagina de contact și pe cea de echipă din linkurile găsite (harta + pagina principală)\nconst prev = $('Pregateste pagina principala').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const home = 'https://' + p._domain + '/';\n  const d = (r.json && r.json.data) || {};\n  const links = [...new Set([...(d.links || []), ...(p._mapLinks || [])])].filter(u => typeof u === 'string' && u.includes(p._domain));\n  const path = u => String(u).replace(/^https?:\\/\\/[^\\/]+/, '');\n  const contact = links.find(u => /contact|kontakt/i.test(path(u))) || home;\n  const team = links.find(u => u !== contact && /echipa|despre|about|team|noi/i.test(path(u))) || home;\n  const body = u => JSON.stringify({ url: u, formats: ['markdown'], onlyMainContent: true, maxAge: 0 });\n  return { json: { _domain: p._domain, _searchPages: p._searchPages,\n    _homeMarkdown: d.markdown || '', _u1: contact, _u2: team, _scrape1: body(contact), _scrape2: body(team) } };\n});"
-      }
-    },
-    {
-      "id": "d455ea01-ea85-4e4d-9627-22cc084c8c4e",
-      "name": "Citeste pagina contact Firecrawl",
+      },
+      "id": "e245ac89-0d2b-4de4-83d0-a56367ec1ff2",
+      "name": "Read homepage (Firecrawl)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4820,
-        420
+        1184,
+        512
       ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 10000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "gv6bkCmMqj7rz1Mh",
           "name": "Firecrawl - Bearer"
         }
       },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Alege pagina de contact și pe cea de echipă din linkurile găsite (harta + pagina principală)\nconst prev = $('Prepare homepage read').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const home = 'https://' + p._domain + '/';\n  const d = (r.json && r.json.data) || {};\n  const links = [...new Set([...(d.links || []), ...(p._mapLinks || [])])].filter(u => typeof u === 'string' && u.includes(p._domain));\n  const path = u => String(u).replace(/^https?:\\/\\/[^\\/]+/, '');\n  const contact = links.find(u => /contact|kontakt/i.test(path(u))) || home;\n  const team = links.find(u => u !== contact && /echipa|despre|about|team|noi/i.test(path(u))) || home;\n  const body = u => JSON.stringify({ url: u, formats: ['markdown'], onlyMainContent: true, maxAge: 0 });\n  return { json: { _domain: p._domain, _searchPages: p._searchPages,\n    _homeMarkdown: d.markdown || '', _u1: contact, _u2: team, _scrape1: body(contact), _scrape2: body(team) } };\n});"
+      },
+      "id": "9ee8aad1-bded-4ca3-92f0-dae36185e8e2",
+      "name": "Pick contact and team pages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        512
+      ]
+    },
+    {
       "parameters": {
         "method": "POST",
         "url": "https://api.firecrawl.dev/v2/scrape",
@@ -945,35 +927,35 @@
         "rawContentType": "application/json",
         "body": "={{ $json._scrape1 }}",
         "options": {
-          "timeout": 90000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 7000
             }
-          }
+          },
+          "timeout": 90000
         }
-      }
-    },
-    {
-      "id": "127b43ba-bbe6-41d4-b021-d39d881cae9e",
-      "name": "Citeste pagina echipa Firecrawl",
+      },
+      "id": "d455ea01-ea85-4e4d-9627-22cc084c8c4e",
+      "name": "Read contact page (Firecrawl)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        5080,
-        420
+        1632,
+        512
       ],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 10000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "gv6bkCmMqj7rz1Mh",
           "name": "Firecrawl - Bearer"
         }
       },
+      "onError": "continueRegularOutput"
+    },
+    {
       "parameters": {
         "method": "POST",
         "url": "https://api.firecrawl.dev/v2/scrape",
@@ -982,30 +964,48 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ $('Alege pagini').all()[$itemIndex].json._scrape2 }}",
+        "body": "={{ $('Pick contact and team pages').all()[$itemIndex].json._scrape2 }}",
         "options": {
-          "timeout": 90000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 7000
             }
-          }
+          },
+          "timeout": 90000
         }
-      }
+      },
+      "id": "127b43ba-bbe6-41d4-b021-d39d881cae9e",
+      "name": "Read team page (Firecrawl)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1856,
+        512
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gv6bkCmMqj7rz1Mh",
+          "name": "Firecrawl - Bearer"
+        }
+      },
+      "onError": "continueRegularOutput"
     },
     {
+      "parameters": {
+        "jsCode": "// Unește paginile din căutare cu cele citite direct; același format ca la căutare: data.web[{url, markdown}]\nconst prev = $('Pick contact and team pages').all();\nconst s1 = $('Read contact page (Firecrawl)').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const web = [...(p._searchPages || [])];\n  const home = 'https://' + p._domain + '/';\n  if (p._homeMarkdown) web.push({ url: home, markdown: p._homeMarkdown });\n  const add = (resp, u) => {\n    const d = resp && resp.json && resp.json.data;\n    if (d && d.markdown) web.push({ url: (d.metadata && (d.metadata.sourceURL || d.metadata.url)) || u, markdown: d.markdown });\n  };\n  add(s1[i], p._u1);\n  add(r, p._u2);\n  const seen = new Set();\n  const out = web.filter(x => { const k = String(x.url).replace(/\\/$/, ''); if (seen.has(k)) return false; seen.add(k); return true; });\n  return { json: { data: { web: out } } };\n});"
+      },
       "id": "77165014-2acd-4052-8f97-f0722c068f1d",
-      "name": "Unifica pagini contact",
+      "name": "Merge contact pages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5340,
-        420
-      ],
-      "parameters": {
-        "jsCode": "// Unește paginile din căutare cu cele citite direct; același format ca la căutare: data.web[{url, markdown}]\nconst prev = $('Alege pagini').all();\nconst s1 = $('Citeste pagina contact Firecrawl').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const web = [...(p._searchPages || [])];\n  const home = 'https://' + p._domain + '/';\n  if (p._homeMarkdown) web.push({ url: home, markdown: p._homeMarkdown });\n  const add = (resp, u) => {\n    const d = resp && resp.json && resp.json.data;\n    if (d && d.markdown) web.push({ url: (d.metadata && (d.metadata.sourceURL || d.metadata.url)) || u, markdown: d.markdown });\n  };\n  add(s1[i], p._u1);\n  add(r, p._u2);\n  const seen = new Set();\n  const out = web.filter(x => { const k = String(x.url).replace(/\\/$/, ''); if (seen.has(k)) return false; seen.add(k); return true; });\n  return { json: { data: { web: out } } };\n});"
-      }
+        2080,
+        512
+      ]
     }
   ],
   "connections": {
@@ -1035,69 +1035,69 @@
       "main": [
         [
           {
-            "node": "Filtru pagini-director",
+            "node": "Directory-page filter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filtru pagini-director": {
+    "Directory-page filter": {
       "main": [
         [
           {
-            "node": "Pregateste prompt Claude",
+            "node": "Build scoring prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste prompt Claude": {
+    "Build scoring prompt": {
       "main": [
         [
           {
-            "node": "Scoreaza ICP Claude",
+            "node": "Score ICP (Claude)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Scoreaza ICP Claude": {
+    "Score ICP (Claude)": {
       "main": [
         [
           {
-            "node": "Interpreteaza scor si pregateste HubSpot",
+            "node": "Parse score, prepare HubSpot data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Interpreteaza scor si pregateste HubSpot": {
+    "Parse score, prepare HubSpot data": {
       "main": [
         [
           {
-            "node": "Cauta Company in HubSpot",
+            "node": "Search Company in HubSpot",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cauta Company in HubSpot": {
+    "Search Company in HubSpot": {
       "main": [
         [
           {
-            "node": "Decide creare sau actualizare",
+            "node": "Decide create or update",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Decide creare sau actualizare": {
+    "Decide create or update": {
       "main": [
         [
           {
@@ -1112,146 +1112,146 @@
       "main": [
         [
           {
-            "node": "Dupa Company pregateste",
+            "node": "After Company prepare next steps",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Dupa Company pregateste": {
+    "After Company prepare next steps": {
       "main": [
         [
           {
-            "node": "Cauta Deal in HubSpot",
+            "node": "Search Deal in HubSpot",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cauta Deal in HubSpot": {
+    "Search Deal in HubSpot": {
       "main": [
         [
           {
-            "node": "Decide deal",
+            "node": "Decide create or update Deal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Decide deal": {
+    "Decide create or update Deal": {
       "main": [
         [
           {
-            "node": "Upsert Deal (Nou)",
+            "node": "Upsert Deal (New)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upsert Deal (Nou)": {
+    "Upsert Deal (New)": {
       "main": [
         [
           {
-            "node": "Dupa Deal",
+            "node": "After Deal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Dupa Deal": {
+    "After Deal": {
       "main": [
         [
           {
-            "node": "Este calificat",
+            "node": "Is qualified?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Este calificat": {
+    "Is qualified?": {
       "main": [
         [
           {
-            "node": "Muta Deal in Calificat",
+            "node": "Move Deal to Qualified",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Muta Deal in Calificat": {
+    "Move Deal to Qualified": {
       "main": [
         [
           {
-            "node": "Dupa Calificat",
+            "node": "After qualified",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Dupa Calificat": {
+    "After qualified": {
       "main": [
         [
           {
-            "node": "Cauta pagini contact Firecrawl",
+            "node": "Search contact pages (Firecrawl)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cauta pagini contact Firecrawl": {
+    "Search contact pages (Firecrawl)": {
       "main": [
         [
           {
-            "node": "Pregateste harta",
+            "node": "Prepare site-map request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste prompt contact": {
+    "Build contact prompt": {
       "main": [
         [
           {
-            "node": "Extrage contact Claude",
+            "node": "Extract contact (Claude)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extrage contact Claude": {
+    "Extract contact (Claude)": {
       "main": [
         [
           {
-            "node": "Interpreteaza contact",
+            "node": "Parse contact",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Interpreteaza contact": {
+    "Parse contact": {
       "main": [
         [
           {
-            "node": "Are email",
+            "node": "Has email?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Are email": {
+    "Has email?": {
       "main": [
         [
           {
@@ -1262,7 +1262,7 @@
         ],
         [
           {
-            "node": "Unifica",
+            "node": "Merge branches",
             "type": "main",
             "index": 1
           }
@@ -1273,194 +1273,194 @@
       "main": [
         [
           {
-            "node": "Prepara asociere",
+            "node": "Prepare association",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepara asociere": {
+    "Prepare association": {
       "main": [
         [
           {
-            "node": "Asociaza Contact cu Company",
+            "node": "Associate Contact with Company",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Asociaza Contact cu Company": {
+    "Associate Contact with Company": {
       "main": [
         [
           {
-            "node": "Dupa asociere",
+            "node": "After association",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Dupa asociere": {
+    "After association": {
       "main": [
         [
           {
-            "node": "Unifica",
+            "node": "Merge branches",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Unifica": {
+    "Merge branches": {
       "main": [
         [
           {
-            "node": "Pregateste prompt oferta",
+            "node": "Build offer prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste prompt oferta": {
+    "Build offer prompt": {
       "main": [
         [
           {
-            "node": "Scrie oferta Claude",
+            "node": "Write offer (Claude)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Scrie oferta Claude": {
+    "Write offer (Claude)": {
       "main": [
         [
           {
-            "node": "Pregateste fisier aprobare",
+            "node": "Prepare approval file",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste fisier aprobare": {
+    "Prepare approval file": {
       "main": [
         [
           {
-            "node": "Salveaza oferta pentru aprobare",
+            "node": "Save offer for approval",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Salveaza oferta pentru aprobare": {
+    "Save offer for approval": {
       "main": [
         [
           {
-            "node": "Prepara mutare Draft",
+            "node": "Prepare move to Draft",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepara mutare Draft": {
+    "Prepare move to Draft": {
       "main": [
         [
           {
-            "node": "Muta Deal in Draft email",
+            "node": "Move Deal to Draft email",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste harta": {
+    "Prepare site-map request": {
       "main": [
         [
           {
-            "node": "Harta site Firecrawl",
+            "node": "Site map (Firecrawl)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Harta site Firecrawl": {
+    "Site map (Firecrawl)": {
       "main": [
         [
           {
-            "node": "Pregateste pagina principala",
+            "node": "Prepare homepage read",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pregateste pagina principala": {
+    "Prepare homepage read": {
       "main": [
         [
           {
-            "node": "Citeste pagina principala Firecrawl",
+            "node": "Read homepage (Firecrawl)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Citeste pagina principala Firecrawl": {
+    "Read homepage (Firecrawl)": {
       "main": [
         [
           {
-            "node": "Alege pagini",
+            "node": "Pick contact and team pages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Alege pagini": {
+    "Pick contact and team pages": {
       "main": [
         [
           {
-            "node": "Citeste pagina contact Firecrawl",
+            "node": "Read contact page (Firecrawl)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Citeste pagina contact Firecrawl": {
+    "Read contact page (Firecrawl)": {
       "main": [
         [
           {
-            "node": "Citeste pagina echipa Firecrawl",
+            "node": "Read team page (Firecrawl)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Citeste pagina echipa Firecrawl": {
+    "Read team page (Firecrawl)": {
       "main": [
         [
           {
-            "node": "Unifica pagini contact",
+            "node": "Merge contact pages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Unifica pagini contact": {
+    "Merge contact pages": {
       "main": [
         [
           {
-            "node": "Pregateste prompt contact",
+            "node": "Build contact prompt",
             "type": "main",
             "index": 0
           }

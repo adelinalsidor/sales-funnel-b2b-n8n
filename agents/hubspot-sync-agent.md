@@ -11,7 +11,7 @@
 
 **Deal stages:** New → Qualified (if the company is qualified) → Draft email (once the offer file is written) → Review and send (not wired yet; it comes with real email sending).
 
-**n8n nodes:** the Company and Deal nodes, `Este calificat`, `Muta Deal in Calificat`, the contact upsert and association nodes, and `Prepara mutare Draft` / `Muta Deal in Draft email`.
+**n8n nodes:** the Company and Deal nodes, `Is qualified?`, `Move Deal to Qualified`, the contact upsert and association nodes, and `Prepare move to Draft` / `Move Deal to Draft email`.
 
 **Verified:** repeated runs leave each domain as a single company and a single deal.
 

@@ -10,7 +10,21 @@ The five agents (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-
 
 **Live flow diagram** of all 42 nodes, with explanations: **[adelinalsidor.github.io/sales-funnel-b2b-n8n](https://adelinalsidor.github.io/sales-funnel-b2b-n8n/)** (source: [`docs/schema-flux.html`](docs/schema-flux.html)).
 
-> **A note on language:** the target market is Romanian SMEs, so the prompts, the n8n node names, the demo data and the generated offers are in **Romanian**. The documentation is in English.
+> **A note on language:** the target market is Romanian SMEs, so the agent prompts, the demo data and the generated offers are in **Romanian**. The documentation and the n8n node names are in English.
+
+## Screenshots
+
+**The flow in n8n** (42 nodes, grouped in sections, left to right):
+
+![The B2B sales funnel flow in n8n](docs/img/flow-n8n-EN.png)
+
+**HubSpot**: the demo companies created by the flow, with no duplicates:
+
+![Demo companies in HubSpot](docs/img/hubspot-pipeline.png)
+
+**An offer draft**, written from the company's own website and waiting for approval:
+
+![Offer draft awaiting approval](docs/img/email-draft.png)
 
 ## Flow diagram
 

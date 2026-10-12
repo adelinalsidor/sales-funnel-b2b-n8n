@@ -8,7 +8,7 @@
 
 **Output:** the same rows, minus directory pages and listicles ("Top 10 firms...", rankings, reviews).
 
-**n8n nodes:** `Read/Write Files from Disk` → `Extract from File` → `Filtru pagini-director`.
+**n8n nodes:** `Read/Write Files from Disk` → `Extract from File` → `Directory-page filter`.
 
 **Filter logic** (code node): rejects a row if the name or URL path matches patterns such as `top 10`, `cele mai bune`, `clasament`, `director`, `lista de`, `recenzii`, `reviews`, or if the website is missing. Every rejection is logged with the company name.
 

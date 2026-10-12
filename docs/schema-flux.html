@@ -87,7 +87,7 @@
 
   <div class="brief">
     <p><b>Project goal:</b> automatically go through company data found on the internet, identify the best potential customers (AI lead scoring against the ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers that go out only after human approval.</p>
-    <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Each node shows an English name and, in grey, the exact name it has in the n8n flow (Romanian, the language of the target market).</p>
+    <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Node names are shown exactly as they appear in the n8n flow.</p>
   </div>
 
   <div class="legend" aria-label="Legend">
@@ -288,10 +288,10 @@ const EN = {
   'Scoreaza ICP Claude':'Score ICP (Claude)',
   'Interpreteaza scor si pregateste HubSpot':'Parse score, prepare HubSpot data',
   'Cauta Company in HubSpot':'Search Company in HubSpot',
-  'Decide creare sau actualizare':'Decide: create or update',
-  'Dupa Company pregateste':'After Company: prepare next steps',
+  'Decide creare sau actualizare':'Decide create or update',
+  'Dupa Company pregateste':'After Company prepare next steps',
   'Cauta Deal in HubSpot':'Search Deal in HubSpot',
-  'Decide deal':'Decide: create or update Deal',
+  'Decide deal':'Decide create or update Deal',
   'Upsert Deal (Nou)':'Upsert Deal (New)',
   'Dupa Deal':'After Deal',
   'Este calificat':'Is qualified?',
@@ -322,7 +322,7 @@ const EN = {
   'Muta Deal in Draft email':'Move Deal to Draft email'
 };
 const en = name => EN[name] || name;
-const origTag = name => EN[name] ? `<span class="orig">n8n: ${name}</span>` : '';
+const origTag = () => '';
 
 let n = 0;
 const root = document.getElementById('stages');
@@ -340,7 +340,7 @@ stages.forEach((s, i) => {
       <div class="nname">${en(name)}${origTag(name)} <span class="chip">${label}</span>${isNew ? '<span class="nou">new</span>' : ''}</div>
       <div class="ndesc">${desc}</div></div></li>`;
     const box = document.querySelector(`.nodelist[data-step="${s.step}"]`);
-    if (box) box.insertAdjacentHTML('beforeend', `<span class="nchip ${cls}" title="n8n: ${name}"><span class="k">${n}</span>${en(name)}</span>`);
+    if (box) box.insertAdjacentHTML('beforeend', `<span class="nchip ${cls}"><span class="k">${n}</span>${en(name)}</span>`);
   });
   h += '</ul></div>';
   d.innerHTML = h;

@@ -8,7 +8,7 @@
 
 **Output:** JSON `{"scor": 1-10, "eticheta": "calificat|necalificat", "motiv": "..."}`. Threshold: score ≥ 6 = qualified. The result is stored in the `description` field of the company in HubSpot.
 
-**n8n nodes:** `Pregateste prompt Claude` → `Scoreaza ICP Claude` (HTTP call to the Anthropic API) → `Interpreteaza scor si pregateste HubSpot`.
+**n8n nodes:** `Build scoring prompt` → `Score ICP (Claude)` (HTTP call to the Anthropic API) → `Parse score, prepare HubSpot data`.
 
 **Prompt (verbatim from the flow, in Romanian):**
 
