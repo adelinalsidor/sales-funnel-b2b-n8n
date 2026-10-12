@@ -1,22 +1,22 @@
-# Secrete — NICIODATĂ pe git
+# Secrets — NEVER commit
 .env
 .env.*
 
-# Fișiere personale / de lucru
+# Personal / working files
 README.ro.md
 .claude/
 n8n-backup/
 
-# Date reale despre prospecți (oferte generate, de aprobat manual)
+# Real prospect data (generated offers, to be approved manually)
 oferte-de-aprobat/
 
-# Foldere tehnice Vercel (ID-uri de proiect)
+# Vercel technical folders (project IDs)
 demo-sites/*/.vercel/
 oferte-rezerva-reale/
 companii-test.csv
 
-# Materiale de prezentare (doar local)
+# Presentation materials (local only)
 prezentare/
 
-# Planul inițial al agenților (doar local)
+# Initial agent plan (local only)
 output/

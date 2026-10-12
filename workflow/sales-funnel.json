@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "fileSelector": "C:\\Users\\Adi\\.n8n-files\\companii-demo.csv",
+        "fileSelector": "C:\\Users\\<you>\\.n8n-files\\companii-demo.csv",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -41,7 +41,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Aruncă paginile-director și listicle-urile (\"Top 10 firme...\", clasamente, recenzii)\nconst badName = /(\\btop\\s*\\d+|cele mai bune|cei mai buni|clasament|\\bdirector(y)?\\b|lista de|recenzii|\\breviews?\\b|compara)/i;\nconst badPath = /\\/(top[-_]?\\d*|clasament|director|lista|reviews?|recenzii)(\\/|$|-)/i;\nconst out = [];\nfor (const item of $input.all()) {\n  const c = item.json;\n  let path = '';\n  try { path = new URL(c.Website).pathname; } catch (e) {}\n  if (!c.Website || badName.test(String(c.Nume || '')) || badPath.test(path)) {\n    console.log('Respinsa (pagina-director/listicle): ' + c.Nume);\n    continue;\n  }\n  out.push({ json: c });\n}\nreturn out;\n"
+        "jsCode": "// Drop directory pages and listicles (\"Top 10 companies...\", rankings, reviews)\nconst badName = /(\\btop\\s*\\d+|cele mai bune|cei mai buni|clasament|\\bdirector(y)?\\b|lista de|recenzii|\\breviews?\\b|compara)/i;\nconst badPath = /\\/(top[-_]?\\d*|clasament|director|lista|reviews?|recenzii)(\\/|$|-)/i;\nconst out = [];\nfor (const item of $input.all()) {\n  const c = item.json;\n  let path = '';\n  try { path = new URL(c.Website).pathname; } catch (e) {}\n  if (!c.Website || badName.test(String(c.Nume || '')) || badPath.test(path)) {\n    console.log('Respinsa (pagina-director/listicle): ' + c.Nume);\n    continue;\n  }\n  out.push({ json: c });\n}\nreturn out;\n"
       },
       "id": "bfc074b3-9666-41f5-a34d-ff39649b6bb0",
       "name": "Directory-page filter",
@@ -159,7 +159,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Dacă HubSpot a găsit deja firma (după domeniu), păstrăm id-ul => nodul următor face PATCH (actualizare), altfel POST (creare)\nconst originals = $('Parse score, prepare HubSpot data').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  return { json: { ...orig, _companyId: id, _existaInHubSpot: !!id, _cautareEsuata: !!(r.json && r.json.error) } };\n});\n"
+        "jsCode": "// If HubSpot already found the company (by domain), keep its id => the next node does a PATCH (update), otherwise a POST (create)\nconst originals = $('Parse score, prepare HubSpot data').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  return { json: { ...orig, _companyId: id, _existaInHubSpot: !!id, _cautareEsuata: !!(r.json && r.json.error) } };\n});\n"
       },
       "id": "eb7d3e41-60e7-4a24-8809-84551b5ddd4a",
       "name": "Decide create or update",
@@ -263,7 +263,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Deal existent (găsit după nume) => PATCH fără să-i atingem etapa; altfel POST în etapa \"Nou\", asociat cu firma\nconst originals = $('After Company prepare next steps').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  const create = { properties: { dealname: o._dealName, pipeline: '4207689945', dealstage: '6186488008' } };\n  if (o.CompanyId) {\n    create.associations = [{ to: { id: o.CompanyId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 5 }] }];\n  }\n  const body = id ? { properties: { dealname: o._dealName } } : create;\n  return { json: { ...o, _dealId: id, _dealBody: JSON.stringify(body) } };\n});\n"
+        "jsCode": "// Existing Deal (found by name) => PATCH without touching its stage; otherwise POST into the \"Nou\" (New) stage, associated with the company\nconst originals = $('After Company prepare next steps').all();\nreturn $input.all().map((r, i) => {\n  const o = originals[i].json;\n  const found = r.json && r.json.results && r.json.results[0];\n  const id = found ? String(found.id) : null;\n  const create = { properties: { dealname: o._dealName, pipeline: '4207689945', dealstage: '6186488008' } };\n  if (o.CompanyId) {\n    create.associations = [{ to: { id: o.CompanyId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 5 }] }];\n  }\n  const body = id ? { properties: { dealname: o._dealName } } : create;\n  return { json: { ...o, _dealId: id, _dealBody: JSON.stringify(body) } };\n});\n"
       },
       "id": "e659ddf0-378a-4f35-a195-bd724e887954",
       "name": "Decide create or update Deal",
@@ -721,7 +721,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const DIR = 'C:\\\\Users\\\\Adi\\\\Curs-AI-Accelerator\\\\PROIECTELE MELE\\\\FUNNEL DE VANZARI\\\\oferte-de-aprobat';\nconst originals = $('Build offer prompt').all();\nconst items = $input.all();\nconst out = [];\nconst q = v => '\"' + String(v == null ? '' : v).replace(/\"/g, '\\\\\"') + '\"';\nfor (let i = 0; i < items.length; i++) {\n  const r = items[i].json;\n  const c = originals[i].json;\n  let text = '';\n  try { text = r.content.filter(b => b.type === 'text').map(b => b.text).join('\\n'); } catch (e) {}\n  if (r.stop_reason === 'max_tokens') console.log('Oferta taiata (max_tokens) pentru: ' + c.Nume);\n  if (!text) { console.log('Fara oferta generata pentru: ' + c.Nume); continue; }\n  const slug = String(c.Domain || 'firma').replace(/[^a-z0-9]+/gi, '-');\n  const front = [\n    '---',\n    'status: în așteptare',\n    'firma: ' + q(c.Nume),\n    'website: ' + q(c.Website),\n    'scor_icp: ' + c.ScorICP,\n    'contact: ' + q(c.Contact && c.Contact.nume),\n    'rol_contact: ' + q(c.Contact && c.Contact.rol),\n    'email_contact: ' + q(c.Contact && c.Contact.email),\n    'contact_status: ' + c.ContactStatus,\n    'hubspot_company_id: ' + q(c.CompanyId),\n    'hubspot_deal_id: ' + q(c.DealId),\n    'generat: ' + new Date().toISOString().slice(0, 10),\n    '---'\n  ].join('\\n');\n  const content = front + '\\n\\n> DRAFT — neaprobat. Citește, apoi schimbă `status` în `aprobat` sau `respins` (sus, în capul fișierului).\\n\\n' + text + '\\n';\n  const bin = await this.helpers.prepareBinaryData(Buffer.from(content, 'utf8'), slug + '.md', 'text/markdown');\n  out.push({\n    json: { Nume: c.Nume, _fileName: DIR + '\\\\' + slug + '.md', DealId: c.DealId, _dealUrl: c._dealUrl, _dealDraftBody: c._dealDraftBody },\n    binary: { data: bin }\n  });\n}\nreturn out;\n"
+        "jsCode": "const DIR = 'C:\\\\Users\\\\<you>\\\\path\\\\to\\\\FUNNEL DE VANZARI\\\\oferte-de-aprobat';\nconst originals = $('Build offer prompt').all();\nconst items = $input.all();\nconst out = [];\nconst q = v => '\"' + String(v == null ? '' : v).replace(/\"/g, '\\\\\"') + '\"';\nfor (let i = 0; i < items.length; i++) {\n  const r = items[i].json;\n  const c = originals[i].json;\n  let text = '';\n  try { text = r.content.filter(b => b.type === 'text').map(b => b.text).join('\\n'); } catch (e) {}\n  if (r.stop_reason === 'max_tokens') console.log('Oferta taiata (max_tokens) pentru: ' + c.Nume);\n  if (!text) { console.log('Fara oferta generata pentru: ' + c.Nume); continue; }\n  const slug = String(c.Domain || 'firma').replace(/[^a-z0-9]+/gi, '-');\n  const front = [\n    '---',\n    'status: în așteptare',\n    'firma: ' + q(c.Nume),\n    'website: ' + q(c.Website),\n    'scor_icp: ' + c.ScorICP,\n    'contact: ' + q(c.Contact && c.Contact.nume),\n    'rol_contact: ' + q(c.Contact && c.Contact.rol),\n    'email_contact: ' + q(c.Contact && c.Contact.email),\n    'contact_status: ' + c.ContactStatus,\n    'hubspot_company_id: ' + q(c.CompanyId),\n    'hubspot_deal_id: ' + q(c.DealId),\n    'generat: ' + new Date().toISOString().slice(0, 10),\n    '---'\n  ].join('\\n');\n  const content = front + '\\n\\n> DRAFT — neaprobat. Citește, apoi schimbă `status` în `aprobat` sau `respins` (sus, în capul fișierului).\\n\\n' + text + '\\n';\n  const bin = await this.helpers.prepareBinaryData(Buffer.from(content, 'utf8'), slug + '.md', 'text/markdown');\n  out.push({\n    json: { Nume: c.Nume, _fileName: DIR + '\\\\' + slug + '.md', DealId: c.DealId, _dealUrl: c._dealUrl, _dealDraftBody: c._dealDraftBody },\n    binary: { data: bin }\n  });\n}\nreturn out;\n"
       },
       "id": "376f6b5a-f6a6-4e23-9a44-be030aa73c8a",
       "name": "Prepare approval file",
@@ -749,7 +749,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// După scrierea fișierului: păstrăm datele Deal-ului ca să-l mutăm în \"Draft email\"\nconst originals = $('Prepare approval file').all();\nreturn $input.all().map((r, i) => ({ json: { ...originals[i].json } }));\n"
+        "jsCode": "// After writing the file: keep the Deal data so we can move it to \"Draft email\"\nconst originals = $('Prepare approval file').all();\nreturn $input.all().map((r, i) => ({ json: { ...originals[i].json } }));\n"
       },
       "id": "66fc938d-a34c-4fe9-afd3-1bbf791ace3c",
       "name": "Prepare move to Draft",
@@ -801,7 +801,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Păstrăm rezultatele căutării și pregătim cererea \"map\" (harta site-ului, fără să depindă de index)\nconst originals = $('After qualified').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  return { json: {\n    _domain: orig.Domain,\n    _searchPages: pages,\n    _mapBody: JSON.stringify({ url: 'https://' + orig.Domain, search: 'contact echipa despre noi', limit: 30 })\n  } };\n});"
+        "jsCode": "// Keep the search results and prepare the \"map\" request (site map, independent of the search index)\nconst originals = $('After qualified').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  return { json: {\n    _domain: orig.Domain,\n    _searchPages: pages,\n    _mapBody: JSON.stringify({ url: 'https://' + orig.Domain, search: 'contact echipa despre noi', limit: 30 })\n  } };\n});"
       },
       "id": "0cc54f85-f7d8-493e-be13-9ab5dc872e72",
       "name": "Prepare site-map request",
@@ -853,7 +853,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Pregătește citirea paginii principale (cu toate linkurile, inclusiv din meniu)\nconst prev = $('Prepare site-map request').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const mapLinks = ((r.json && r.json.links) || []).map(l => typeof l === 'string' ? l : (l && l.url)).filter(Boolean);\n  return { json: { _domain: p._domain, _searchPages: p._searchPages, _mapLinks: mapLinks,\n    _scrapeHome: JSON.stringify({ url: 'https://' + p._domain + '/', formats: ['markdown', 'links'], onlyMainContent: false }) } };\n});"
+        "jsCode": "// Prepare reading the homepage (with all links, including the menu)\nconst prev = $('Prepare site-map request').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const mapLinks = ((r.json && r.json.links) || []).map(l => typeof l === 'string' ? l : (l && l.url)).filter(Boolean);\n  return { json: { _domain: p._domain, _searchPages: p._searchPages, _mapLinks: mapLinks,\n    _scrapeHome: JSON.stringify({ url: 'https://' + p._domain + '/', formats: ['markdown', 'links'], onlyMainContent: false }) } };\n});"
       },
       "id": "d44e386d-aa2c-49bb-bdc0-b10f830aa275",
       "name": "Prepare homepage read",
@@ -905,7 +905,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Alege pagina de contact și pe cea de echipă din linkurile găsite (harta + pagina principală)\nconst prev = $('Prepare homepage read').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const home = 'https://' + p._domain + '/';\n  const d = (r.json && r.json.data) || {};\n  const links = [...new Set([...(d.links || []), ...(p._mapLinks || [])])].filter(u => typeof u === 'string' && u.includes(p._domain));\n  const path = u => String(u).replace(/^https?:\\/\\/[^\\/]+/, '');\n  const contact = links.find(u => /contact|kontakt/i.test(path(u))) || home;\n  const team = links.find(u => u !== contact && /echipa|despre|about|team|noi/i.test(path(u))) || home;\n  const body = u => JSON.stringify({ url: u, formats: ['markdown'], onlyMainContent: true, maxAge: 0 });\n  return { json: { _domain: p._domain, _searchPages: p._searchPages,\n    _homeMarkdown: d.markdown || '', _u1: contact, _u2: team, _scrape1: body(contact), _scrape2: body(team) } };\n});"
+        "jsCode": "// Pick the contact page and the team page from the links found (site map + homepage)\nconst prev = $('Prepare homepage read').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const home = 'https://' + p._domain + '/';\n  const d = (r.json && r.json.data) || {};\n  const links = [...new Set([...(d.links || []), ...(p._mapLinks || [])])].filter(u => typeof u === 'string' && u.includes(p._domain));\n  const path = u => String(u).replace(/^https?:\\/\\/[^\\/]+/, '');\n  const contact = links.find(u => /contact|kontakt/i.test(path(u))) || home;\n  const team = links.find(u => u !== contact && /echipa|despre|about|team|noi/i.test(path(u))) || home;\n  const body = u => JSON.stringify({ url: u, formats: ['markdown'], onlyMainContent: true, maxAge: 0 });\n  return { json: { _domain: p._domain, _searchPages: p._searchPages,\n    _homeMarkdown: d.markdown || '', _u1: contact, _u2: team, _scrape1: body(contact), _scrape2: body(team) } };\n});"
       },
       "id": "9ee8aad1-bded-4ca3-92f0-dae36185e8e2",
       "name": "Pick contact and team pages",
@@ -996,7 +996,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Unește paginile din căutare cu cele citite direct; același format ca la căutare: data.web[{url, markdown}]\nconst prev = $('Pick contact and team pages').all();\nconst s1 = $('Read contact page (Firecrawl)').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const web = [...(p._searchPages || [])];\n  const home = 'https://' + p._domain + '/';\n  if (p._homeMarkdown) web.push({ url: home, markdown: p._homeMarkdown });\n  const add = (resp, u) => {\n    const d = resp && resp.json && resp.json.data;\n    if (d && d.markdown) web.push({ url: (d.metadata && (d.metadata.sourceURL || d.metadata.url)) || u, markdown: d.markdown });\n  };\n  add(s1[i], p._u1);\n  add(r, p._u2);\n  const seen = new Set();\n  const out = web.filter(x => { const k = String(x.url).replace(/\\/$/, ''); if (seen.has(k)) return false; seen.add(k); return true; });\n  return { json: { data: { web: out } } };\n});"
+        "jsCode": "// Merge the pages from search with the ones read directly; same format as search: data.web[{url, markdown}]\nconst prev = $('Pick contact and team pages').all();\nconst s1 = $('Read contact page (Firecrawl)').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const web = [...(p._searchPages || [])];\n  const home = 'https://' + p._domain + '/';\n  if (p._homeMarkdown) web.push({ url: home, markdown: p._homeMarkdown });\n  const add = (resp, u) => {\n    const d = resp && resp.json && resp.json.data;\n    if (d && d.markdown) web.push({ url: (d.metadata && (d.metadata.sourceURL || d.metadata.url)) || u, markdown: d.markdown });\n  };\n  add(s1[i], p._u1);\n  add(r, p._u2);\n  const seen = new Set();\n  const out = web.filter(x => { const k = String(x.url).replace(/\\/$/, ''); if (seen.has(k)) return false; seen.add(k); return true; });\n  return { json: { data: { web: out } } };\n});"
       },
       "id": "77165014-2acd-4052-8f97-f0722c068f1d",
       "name": "Merge contact pages",
