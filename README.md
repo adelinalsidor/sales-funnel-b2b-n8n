@@ -1,106 +1,113 @@
-# Funnel de vânzări B2B automatizat (MVP)
+# B2B Sales Funnel (MVP)
 
-De la o listă de firme la **ofertă personalizată, scrisă și gata de aprobat**, cu CRM actualizat pe parcurs. Construit cu **n8n** (orchestrare), **Claude** (judecată și scriere), **Firecrawl** (citirea site-urilor) și **HubSpot** (CRM).
+From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
 
-> **Stadiu:** MVP funcțional. Demo-ul din acest repo rulează pe **firme și site-uri fictive** (`companii-demo.csv`, `demo-sites/`). **Nu trimite niciun email**: fiecare ofertă așteaptă aprobarea unui om.
+> **Status:** working MVP. The demo in this repo runs on **fictional companies and mock websites** (`companii-demo.csv`, `demo-sites/`). **It never sends an email**: every offer waits for a human to approve it.
 
-Cei cinci agenți (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-writer), cu rolul și promptul fiecăruia, sunt descriși în [`agenti/`](agenti/README.md). Ei rulează ca noduri în n8n, nu ca fișiere separate.
+**Project goal:** go through company data found on the internet, identify the best potential customers (AI lead scoring against an ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers.
 
-**Schema vizuală** a celor 42 de noduri, cu explicații: [`docs/schema-flux.html`](docs/schema-flux.html) (se deschide direct în browser).
+The five agents (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-writer), with the role and prompt of each, are described in [`agents/`](agents/README.md). They run as nodes inside n8n, not as separate files.
 
-## Schema fluxului
+**Visual diagram** of all 42 nodes, with explanations: [`docs/schema-flux.html`](docs/schema-flux.html) (opens directly in a browser).
+
+> **A note on language:** the target market is Romanian SMEs, so the prompts, the n8n node names, the demo data and the generated offers are in **Romanian**. The documentation is in English.
+
+## Flow diagram
 
 ```
-CSV cu firme
+CSV with companies
    │
    ▼
-Filtru pagini-director ──► aruncă listicle-uri ("Top 10 firme...")
+Directory-page filter ──► drops listicles ("Top 10 firms...")
    │
    ▼
-Claude Haiku ──► scor ICP 1-10 + etichetă (calificat ≥ 6) + motiv
+Claude Haiku ──► ICP score 1-10 + label (qualified ≥ 6) + reason
    │
    ▼
-HubSpot: caută firma după domeniu ──► există? PATCH : POST   (fără dubluri)
+HubSpot: look up the company by domain ──► exists? PATCH : POST   (no duplicates)
    │
    ▼
-HubSpot: Deal în pipeline-ul „Funnel B2B", etapa NOU (căutat după nume, fără dubluri)
+HubSpot: Deal in the "Funnel B2B" pipeline, stage NEW (looked up by name, no duplicates)
    │
    ▼
-Este calificat?
-   ├─ nu ──► gata (Deal-ul rămâne în „Nou", cu scorul în firmă)
-   └─ da ──► Deal → etapa CALIFICAT
+Qualified?
+   ├─ no ──► done (the Deal stays in "New", the score is stored on the company)
+   └─ yes ─► Deal → stage QUALIFIED
        ▼
-   Firecrawl: pagini de contact / echipă ale firmei
+   Firecrawl: search + site map + homepage links → contact and team pages
        ▼
-   Claude Haiku: extrage persoana de decizie (nu inventează; altfel „negăsit")
+   Claude Haiku: extracts the decision maker (never invents; otherwise "not found")
        ▼
-   Are email? ── da ──► HubSpot: upsert Contact (după email) + asociere cu Company
-       │ nu ─────────────────────────────┐
-       ▼                                 ▼
-                 Unifică
+   Has email? ── yes ──► HubSpot: upsert Contact (by email) + associate with Company
+       │ no ────────────────────────────┐
+       ▼                                ▼
+                 Merge
                     ▼
-   Claude Sonnet: email + pain-points + ofertă (fără prețuri/cifre inventate)
+   Claude Sonnet: email + pain points + offer (no invented prices or figures)
                     ▼
-   oferte-de-aprobat/<firma>.md   (status: în așteptare / aprobat / respins)
+   oferte-de-aprobat/<company>.md   (status: pending / approved / rejected)
                     ▼
-   Deal → etapa DRAFT EMAIL
+   Deal → stage DRAFT EMAIL
                     ▼
-   (pasul următor) verificare + trimitere ──► Deal → etapa VERIFICARE ȘI TRIMITERE
+   (next step) review + send ──► Deal → stage REVIEW AND SEND
 ```
 
-**Pipeline HubSpot „Funnel B2B":** Nou → Calificat → Draft email → Verificare și trimitere. Ultima etapă e pregătită, dar încă nu se mută automat nimic în ea; se leagă de trimiterea reală de email.
+**HubSpot pipeline "Funnel B2B":** New → Qualified → Draft email → Review and send. The last stage is prepared but nothing moves into it automatically yet; it will be wired to real email sending.
 
-Fluxul exportat e în [`workflow/sales-funnel.json`](workflow/sales-funnel.json) (fără chei; credențialele stau în n8n).
+The exported flow is in [`workflow/sales-funnel.json`](workflow/sales-funnel.json) (no keys; credentials stay in n8n).
 
-## Decizii de proiectare
+## Design decisions
 
-- **Idempotent:** rulat de oricâte ori, nu creează dubluri. Firmele se caută după domeniu, contactele după email.
-- **Nu inventează:** dacă pe site nu există un nume sau un detaliu, rezultatul spune explicit „negăsit" / „DETALII INSUFICIENTE".
-- **Model potrivit pentru sarcină:** Haiku (ieftin) pentru scor și extragere, Sonnet pentru scrierea ofertei. `temperature: 0` la scor, ca rezultatul să fie repetabil.
-- **Om în buclă:** oferta pleacă doar după ce `status` din fișier e schimbat manual în `aprobat`.
-- **Rezistent la date murdare:** apelurile externe reîncearcă o dată, iar o eroare pe o firmă nu oprește restul lotului.
+- **Idempotent:** run it as many times as you like, it creates no duplicates. Companies are looked up by domain, deals by name, contacts by email.
+- **Never invents:** if the site has no name or detail, the result says "not found" / "insufficient details".
+- **Right model for the job:** Haiku (cheap) for scoring and extraction, Sonnet for writing the offer. `temperature: 0` for scoring, so results are repeatable.
+- **Human in the loop:** an offer goes out only after `status` in its file is manually set to `approved`.
+- **Works on sites search engines don't know:** contact discovery combines a search with a site map and the homepage links, then reads the contact and team pages directly (cache bypassed).
+- **Tolerates dirty data:** external calls retry, and an error on one company does not stop the rest of the batch.
 
-## Rezultate pe lista demo (8 rânduri, firme fictive)
+## Results on the demo list (8 rows, fictional companies)
 
-| Pas | Rezultat |
+| Step | Result |
 |---|---|
-| Filtru pagini-director | 1 clasament („Top 10 clinici...") eliminat, 7 firme rămân |
-| Calificare ICP | 6 calificate; firma mare, cu chatbot deja în producție, a ieșit necalificată (2/10) |
-| HubSpot | 6 firme și 6 Deal-uri în „Draft email", **fără dubluri** după mai multe rulări |
-| Contact | 4 cu email, 1 găsit fără email, 1 „negăsit" (fără invenții) |
-| Oferte | 6 draft-uri cu detalii concrete de pe site-ul firmei, în `oferte-de-aprobat/` |
+| Directory-page filter | 1 ranking page ("Top 10 clinics...") removed, 7 companies remain |
+| ICP scoring | 6 qualified; the large company, already running a chatbot, came out unqualified (2/10) |
+| HubSpot | 6 companies and 6 Deals in "Draft email", **no duplicates** after repeated runs |
+| Contact | 4 with email, 1 found without email, 1 "not found" (nothing invented) |
+| Offers | 6 drafts with concrete details taken from each company's site, in `oferte-de-aprobat/` |
 
-## Demo cu firme fictive
+## Demo with fictional companies
 
-Firecrawl rulează în cloud, deci nu poate citi site-uri de pe `localhost`. De aceea [`demo-sites/`](demo-sites/) conține 6 site-uri mici, inventate (acasă, echipă, contact), publicate pe Vercel ca `demo-<nume>.vercel.app`. Lista de firme este în `companii-demo.csv`. Toate numele, persoanele și emailurile din demo sunt fictive.
+Firecrawl runs in the cloud, so it cannot read sites from `localhost`. That is why [`demo-sites/`](demo-sites/) contains 6 small invented websites (home, team, contact) published on Vercel as `demo-<name>.vercel.app`. The company list is in `companii-demo.csv`. All names, people and emails in the demo are fictional; the demo emails use each site's own domain so HubSpot associates every contact with the right company.
 
-## Cum se rulează
+## How to run
 
-1. Creează `.env` cu `HUBSPOT_TOKEN`, `FIRECRAWL_API_KEY`, `ANTHROPIC_API_KEY`, `N8N_API_KEY` (nu intră pe git).
-2. Pornește n8n cu acces la folderul proiectului:
+1. Create a `.env` with `HUBSPOT_TOKEN`, `FIRECRAWL_API_KEY`, `ANTHROPIC_API_KEY` (and `N8N_API_KEY` only if you edit the flow through the n8n API). It is git-ignored.
+2. Start n8n with access to the project folder:
    ```powershell
    $env:NODE_OPTIONS = "--dns-result-order=ipv4first"
-   $env:N8N_RESTRICT_FILE_ACCESS_TO = "C:\Users\<tu>\.n8n-files;<calea către acest folder>"
+   $env:N8N_RESTRICT_FILE_ACCESS_TO = "C:\Users\<you>\.n8n-files;<path to this folder>"
    n8n start
    ```
-3. Importă `workflow/sales-funnel.json`, leagă credențialele (Anthropic, HubSpot, Firecrawl). Pune în `.n8n-files` lista de firme dorită (pentru demo: `companii-demo.csv`, cu site-urile fictive din `demo-sites/` publicate pe Vercel), setează-i numele în nodul `Read/Write Files from Disk` și apasă **Execute workflow**.
-4. Deschide fișierele din `oferte-de-aprobat/`, citește-le și setează `status`.
+3. Import `workflow/sales-funnel.json` and connect the credentials (Anthropic, HubSpot, Firecrawl). Put the company list you want in `.n8n-files` (for the demo: `companii-demo.csv`, with the fictional sites from `demo-sites/` deployed), set its name in the `Read/Write Files from Disk` node and click **Execute workflow**.
+4. Open the files in `oferte-de-aprobat/` (created on the first run, git-ignored), read them and set `status`.
 
-## Limitări cunoscute
+## Known limitations
 
-- O nouă rulare **rescrie** fișierele din `oferte-de-aprobat/` și resetează `status`. Mută ofertele aprobate în altă parte.
-- Găsirea contactului depinde de ce e public pe site; LinkedIn nu e acoperit (protecție anti-scraping).
-- Firecrawl limitează numărul de cereri pe minut (eroare `429`). Nodurile care citesc site-urile trimit o cerere la 7 secunde, deci o rulare pe 8 firme durează aproximativ 5 minute.
-- Lista de firme se pregătește în afara flow-ului (în MVP nu există căutare automată pe internet în n8n).
-- Prețul din ofertă e un placeholder (`[PREȚ DE COMPLETAT]`), completat manual.
+- A new run **overwrites** the files in `oferte-de-aprobat/` and resets `status`. Move approved offers elsewhere.
+- Contact discovery depends on what is public on the site; LinkedIn is not covered (anti-scraping protection).
+- Firecrawl rate-limits requests per minute (error `429`). The nodes that read sites send one request every 7 seconds, so a run on 8 companies takes about 5 minutes.
+- The company list is prepared outside the flow (the MVP has no automatic internet search step in n8n).
+- Errors returned by HubSpot do not stop the flow, so they can go unnoticed (see the roadmap).
+- The price in the offer is a placeholder (`[PREȚ DE COMPLETAT]`), filled in by hand.
 
-## Următorii pași
+## Roadmap
 
-- Trimitere reală de email, cu aprobare (mută Deal-ul în „Verificare și trimitere")
-- `lead-responder-agent` (răspuns la lead-uri primite)
-- Contact-finder pentru LinkedIn
-- Generare PDF de ofertă din template
+- Real email sending, with approval (moves the Deal to "Review and send")
+- `lead-responder-agent` (reply to incoming leads)
+- Contact finder for LinkedIn
+- PDF offer generated from a template
+- Surface HubSpot errors instead of continuing silently
 
-## Licență
+## License
 
-[MIT](LICENSE) © 2026 Adelina Sidor. Firmele, persoanele și emailurile din demo sunt fictive.
+[MIT](LICENSE) © 2026 Adelina Sidor. The companies, people and emails in the demo are fictional.

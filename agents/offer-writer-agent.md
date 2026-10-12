@@ -1,16 +1,16 @@
 # offer-writer-agent
 
-**Rol:** scrie emailul de prezentare și oferta personalizată pentru fiecare firmă calificată. Rezultatul **nu se trimite**: se salvează pentru aprobare manuală.
+**Role:** writes the introduction email and the personalized offer for each qualified company. The result is **not sent**: it is saved for manual approval.
 
-**Model:** `claude-sonnet-5-5`, `max_tokens: 6000`. E singurul pas unde se folosește modelul mai scump, pentru că aici contează calitatea textului.
+**Model:** `claude-sonnet-5-5`, `max_tokens: 6000`. It is the only step that uses the more expensive model, because text quality matters here.
 
-**Intrare:** datele firmei, scorul ICP și motivul, persoana de contact (sau „NEGĂSIT" → salut generic) și textul de pe site.
+**Input:** company data, ICP score and reason, the contact person (or "NEGĂSIT" → generic greeting) and the text from the site.
 
-**Ieșire:** un fișier `.md` per firmă în `oferte-de-aprobat/`, cu `status: în așteptare` în cap. Adelina îl schimbă în `aprobat` sau `respins`. Deal-ul trece în „Draft email".
+**Output:** one `.md` file per company in `oferte-de-aprobat/`, with `status: în așteptare` (pending) in its header. The owner changes it to `aprobat` or `respins`. The Deal moves to "Draft email".
 
-**Noduri n8n:** `Pregateste prompt oferta` → `Scrie oferta Claude` → `Pregateste fisier aprobare` → `Salveaza oferta pentru aprobare`.
+**n8n nodes:** `Pregateste prompt oferta` → `Scrie oferta Claude` → `Pregateste fisier aprobare` → `Salveaza oferta pentru aprobare`.
 
-**Prompt (exact din flow):**
+**Prompt (verbatim from the flow, in Romanian):**
 
 ```
 Ești Adelina Sidor, consultant care oferă servicii de automatizare și AI pentru IMM-uri (de exemplu: chatbot pe site, automatizarea răspunsurilor la clienți, integrare CRM, rapoarte automate). Scrie un email de prezentare și conținutul unei oferte personalizate pentru firma de mai jos, în limba română, cu diacritice, ton profesionist și cald.
@@ -42,6 +42,6 @@ FORMAT EXACT AL RĂSPUNSULUI (fără alt text în afara lui):
 (secțiuni cu titluri: Situația actuală; Ce propunem; Pași de implementare; Rezultate așteptate; Investiție; Pasul următor)
 ```
 
-**Garanții anti-halucinare:** prețul rămâne placeholder (decide omul), pain-point-urile trebuie ancorate în textul de pe site, iar la lipsă de date apare „DETALII INSUFICIENTE pe site".
+**Guardrails against hallucination:** the price stays a placeholder (a human decides), pain points must be anchored in the site text, and when data is missing the offer says "DETALII INSUFICIENTE pe site" (insufficient details).
 
-**Lecții învățate:** Sonnet răspunde cu un bloc `thinking` înaintea textului, deci codul caută blocul `type: text`, nu `content[0]`. La `max_tokens: 2500` ofertele ieșeau tăiate; la 6000 sunt complete.
+**Lessons learned:** Sonnet answers with a `thinking` block before the text, so the code looks for the block with `type: text` instead of reading `content[0]`. At `max_tokens: 2500` offers came out truncated; at 6000 they are complete.

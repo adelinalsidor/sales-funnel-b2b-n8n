@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sales Funnel B2B — schema fluxului</title>
+<title>B2B Sales Funnel — flow diagram</title>
 <style>
   :root {
     --bg: #f4f5f7; --card: #ffffff; --text: #151a24; --muted: #4f5868; --line: #cfd4dc;
     --ai: 124,58,237;       /* violet – Claude */
-    --crm: 249,115,22;      /* portocaliu – HubSpot */
-    --web: 14,165,233;      /* albastru-cer – internet / Firecrawl */
-    --file: 234,179,8;      /* galben – fișiere */
-    --logic: 34,197,94;     /* verde aprins – logică n8n */
+    --crm: 249,115,22;      /* orange – HubSpot */
+    --web: 14,165,233;      /* sky blue – internet / Firecrawl */
+    --file: 234,179,8;      /* yellow – files */
+    --logic: 34,197,94;     /* bright green – n8n logic */
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #11141a; --card: #1b2029; --text: #f0f2f6; --muted: #a9b1bf; --line: #333b49; }
@@ -82,201 +82,201 @@
 <body>
 <div class="wrap">
 
-  <h1>Sales Funnel B2B — schema fluxului</h1>
+  <h1>B2B Sales Funnel — flow diagram</h1>
 
   <div class="brief">
-    <p><b>Scopul proiectului:</b> parcurgerea automată a datelor despre firme de pe internet, identificarea celor mai buni potențiali clienți (lead scoring cu AI, în raport cu profilul clientului ideal — ICP), construirea și actualizarea CRM-ului în HubSpot (firme, contacte, oportunități de vânzare) și pregătirea unor oferte personalizate, care pleacă doar după aprobare umană.</p>
-    <p class="muted"><b>Tehnologii:</b> n8n (orchestrare), Claude API (Haiku pentru scoring și extragere de date, Sonnet pentru redactare), Firecrawl (căutare și citire de pagini web), HubSpot CRM (firme, contacte, deal-uri într-un pipeline dedicat).</p>
+    <p><b>Project goal:</b> automatically go through company data found on the internet, identify the best potential customers (AI lead scoring against the ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers that go out only after human approval.</p>
+    <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Node names are shown exactly as they appear in n8n (in Romanian, the language of the target market).</p>
   </div>
 
-  <div class="legend" aria-label="Legenda">
+  <div class="legend" aria-label="Legend">
     <span class="cat-ai"><span class="chip">🤖 Claude (AI)</span></span>
     <span class="cat-crm"><span class="chip">🧡 HubSpot (CRM)</span></span>
     <span class="cat-web"><span class="chip">🌐 Internet (Firecrawl)</span></span>
-    <span class="cat-file"><span class="chip">📄 Fișier</span></span>
-    <span class="cat-logic"><span class="chip">⚙️ Logică n8n (reguli, decizii)</span></span>
+    <span class="cat-file"><span class="chip">📄 File</span></span>
+    <span class="cat-logic"><span class="chip">⚙️ n8n logic (rules, decisions)</span></span>
   </div>
 
-  <h2 class="sec">Fluxul în 7 pași</h2>
+  <h2 class="sec">The flow in 7 steps</h2>
 
   <div class="funnel">
 
     <div class="step cat-web outside">
       <span class="num">1</span>
-      <div><h3>Colectarea firmelor-țintă de pe internet</h3>
-        <p>Căutăm firme (conform criteriilor stabilite) care ar putea beneficia de produsul/serviciul nostru și le adunăm într-o listă (CSV: nume, site, descriere, industrie).</p>
+      <div><h3>Collecting target companies from the internet</h3>
+        <p>We search for companies (according to the established criteria) that could benefit from our product/service and gather them in a list (CSV: name, website, description, industry).</p>
         <div class="chips"><span class="chip">🌐 Internet (Firecrawl)</span></div>
-        <div class="nodelist"><span class="lbl">Noduri n8n</span><span class="nchip cat-logic"><span class="k">—</span>niciun nod: pas făcut separat, în afara flow-ului</span></div>
-        <div class="honest"><b>În versiunea demo,</b> această căutare nu rulează în n8n: avem o listă de firme fictive, salvată într-un fișier, iar flow-ul pornește de la fișier.</div>
+        <div class="nodelist"><span class="lbl">n8n nodes</span><span class="nchip cat-logic"><span class="k">—</span>no node: done separately, outside the flow</span></div>
+        <div class="honest"><b>In the demo version,</b> this search does not run in n8n: we use a list of fictional companies saved in a file, and the flow starts from that file.</div>
       </div></div>
-    <div class="down">▼ fișier CSV cu firme</div>
+    <div class="down">▼ CSV file with companies</div>
 
     <div class="step cat-file" style="width:96%">
       <span class="num">2</span>
-      <div><h3>Încărcarea listei și curățarea ei</h3>
-        <p>Citim fișierul și eliminăm rândurile care nu sunt firme (clasamente, liste „Top 10", recenzii).</p>
-        <div class="chips"><span class="chip">📄 Fișier</span> <span class="cat-logic"><span class="chip">⚙️ Logică n8n</span></span></div>
-        <div class="nodelist" data-step="2"><span class="lbl">Noduri n8n</span></div></div></div>
-    <div class="down">▼ firme reale, un rând per firmă</div>
+      <div><h3>Loading the list and cleaning it</h3>
+        <p>We read the file and drop the rows that are not companies (rankings, "Top 10" lists, reviews).</p>
+        <div class="chips"><span class="chip">📄 File</span> <span class="cat-logic"><span class="chip">⚙️ n8n logic</span></span></div>
+        <div class="nodelist" data-step="2"><span class="lbl">n8n nodes</span></div></div></div>
+    <div class="down">▼ real companies, one row each</div>
 
     <div class="step cat-ai" style="width:92%">
       <span class="num">3</span>
-      <div><h3>Lead scoring: nota de la 1 la 10</h3>
-        <p>Claude Haiku evaluează fiecare firmă în raport cu ICP. Scor ≥ 6 = calificată. Răspuns strict JSON, temperatură 0, pentru rezultate repetabile.</p>
+      <div><h3>Lead scoring: a grade from 1 to 10</h3>
+        <p>Claude Haiku evaluates each company against the ICP. Score ≥ 6 = qualified. Strict JSON answer, temperature 0, for repeatable results.</p>
         <div class="chips"><span class="chip">🤖 Claude (AI)</span></div>
-        <div class="nodelist" data-step="3"><span class="lbl">Noduri n8n</span></div></div></div>
-    <div class="down">▼ scor, etichetă, motiv</div>
+        <div class="nodelist" data-step="3"><span class="lbl">n8n nodes</span></div></div></div>
+    <div class="down">▼ score, label, reason</div>
 
     <div class="step cat-crm" style="width:88%">
       <span class="num">4</span>
-      <div><h3>Crearea CRM-ului în HubSpot</h3>
-        <p>Fiecare firmă devine un Company în HubSpot, cu un Deal în pipeline-ul „Funnel B2B" (etapa „Nou"). Căutăm întâi după domeniu / nume: dacă există, actualizăm (fără dubluri). Firmele calificate trec în „Calificat" și continuă; celelalte rămân în „Nou".</p>
-        <div class="chips"><span class="chip">🧡 HubSpot (CRM)</span> <span class="cat-logic"><span class="chip">⚙️ Logică n8n</span></span></div>
-        <div class="nodelist" data-step="4"><span class="lbl">Noduri n8n</span></div></div></div>
-    <div class="down">▼ doar firmele calificate</div>
+      <div><h3>Building the CRM in HubSpot</h3>
+        <p>Each company becomes a Company in HubSpot, with a Deal in the "Funnel B2B" pipeline (stage "New"). We look it up first by domain / name: if it exists we update it (no duplicates). Qualified companies move to "Qualified" and continue; the others stay in "New".</p>
+        <div class="chips"><span class="chip">🧡 HubSpot (CRM)</span> <span class="cat-logic"><span class="chip">⚙️ n8n logic</span></span></div>
+        <div class="nodelist" data-step="4"><span class="lbl">n8n nodes</span></div></div></div>
+    <div class="down">▼ qualified companies only</div>
 
     <div class="step cat-web" style="width:84%">
       <span class="num">5</span>
-      <div><h3>Identificarea persoanei de decizie</h3>
-        <p>Căutăm pe internet paginile de contact și de echipă ale firmei, apoi citim direct site-ul (și pentru site-uri noi, neindexate). Claude Haiku extrage persoana de decizie: nume, rol, email. Fără sursă pe site = „negăsit" (nu inventăm). Contactul cu email valid se salvează în HubSpot și se leagă de firmă.</p>
+      <div><h3>Identifying the decision maker</h3>
+        <p>We search the web for the company's contact and team pages, then read the site directly (this also works for new, unindexed sites). Claude Haiku extracts the decision maker: name, role, email. No source on the site = "negasit" (not found); we never invent. A contact with a valid email is saved in HubSpot and linked to the company.</p>
         <div class="chips"><span class="chip">🌐 Internet (Firecrawl)</span> <span class="cat-ai"><span class="chip">🤖 Claude (AI)</span></span> <span class="cat-crm"><span class="chip">🧡 HubSpot (CRM)</span></span></div>
-        <div class="nodelist" data-step="5"><span class="lbl">Noduri n8n</span></div></div></div>
-    <div class="down">▼ contact (sau „negăsit")</div>
+        <div class="nodelist" data-step="5"><span class="lbl">n8n nodes</span></div></div></div>
+    <div class="down">▼ contact (or "negasit")</div>
 
     <div class="step cat-ai" style="width:80%">
       <span class="num">6</span>
-      <div><h3>Redactarea ofertei, cu aprobare umană</h3>
-        <p>Claude Sonnet scrie emailul și oferta personalizată, pe baza site-ului firmei. Fără prețuri, cifre sau clienți inventați. Textul se salvează într-un fișier cu status „în așteptare". <b>Nu se trimite nimic</b> până nu aprobă un om.</p>
-        <div class="chips"><span class="chip">🤖 Claude (AI)</span> <span class="cat-file"><span class="chip">📄 Fișier</span></span></div>
-        <div class="nodelist" data-step="6"><span class="lbl">Noduri n8n</span></div></div></div>
-    <div class="down">▼ ofertă în oferte-de-aprobat/</div>
+      <div><h3>Writing the offer, with human approval</h3>
+        <p>Claude Sonnet writes the email and the personalized offer based on the company's site. No invented prices, figures or customers. The text is saved to a file with status "pending". <b>Nothing is sent</b> until a human approves it.</p>
+        <div class="chips"><span class="chip">🤖 Claude (AI)</span> <span class="cat-file"><span class="chip">📄 File</span></span></div>
+        <div class="nodelist" data-step="6"><span class="lbl">n8n nodes</span></div></div></div>
+    <div class="down">▼ offer in oferte-de-aprobat/</div>
 
     <div class="step cat-crm" style="width:76%">
       <span class="num">7</span>
-      <div><h3>Actualizarea pipeline-ului: „Draft email"</h3>
-        <p>Deal-ul firmei trece în etapa „Draft email", ca în HubSpot să se vadă că există o ofertă de verificat.</p>
+      <div><h3>Updating the pipeline: "Draft email"</h3>
+        <p>The company's Deal moves to the "Draft email" stage, so HubSpot shows that an offer is waiting for review.</p>
         <div class="chips"><span class="chip">🧡 HubSpot (CRM)</span></div>
-        <div class="nodelist" data-step="7"><span class="lbl">Noduri n8n</span></div></div></div>
+        <div class="nodelist" data-step="7"><span class="lbl">n8n nodes</span></div></div></div>
   </div>
 
   <div class="numbers">
-    <b>Rezultatul în demo:</b>
+    <b>Result on the demo:</b>
     <div class="row">
-      <span>8 rânduri în listă</span><span class="arrow">→</span>
-      <span>7 firme reale (1 clasament eliminat)</span><span class="arrow">→</span>
-      <span>6 calificate (o firmă mare, cu chatbot deja, a ieșit)</span><span class="arrow">→</span>
-      <span>6 oferte scrise, în așteptarea aprobării</span>
+      <span>8 rows in the list</span><span class="arrow">→</span>
+      <span>7 real companies (1 ranking page removed)</span><span class="arrow">→</span>
+      <span>6 qualified (a large company, already running a chatbot, was excluded)</span><span class="arrow">→</span>
+      <span>6 offers written, awaiting approval</span>
     </div>
   </div>
 
   <div class="rules">
-    <div class="rule"><b>1. Fără date inventate.</b> Dacă o informație nu e pe site, rezultatul spune „negăsit" sau „detalii insuficiente". Prețul îl completează omul.</div>
-    <div class="rule"><b>2. Idempotent.</b> Fluxul poate fi rulat de oricâte ori: nicio firmă, persoană sau oportunitate nu se dublează în HubSpot.</div>
-    <div class="rule"><b>3. Human-in-the-loop.</b> Fluxul nu trimite niciun email. Fiecare ofertă așteaptă citirea și aprobarea unui om.</div>
+    <div class="rule"><b>1. No invented data.</b> If a piece of information is not on the site, the result says "negasit" or "insufficient details". A human fills in the price.</div>
+    <div class="rule"><b>2. Idempotent.</b> The flow can be run any number of times: no company, person or deal is duplicated in HubSpot.</div>
+    <div class="rule"><b>3. Human in the loop.</b> The flow sends no email. Every offer waits to be read and approved by a person.</div>
   </div>
 
-  <h2 class="sec">Detaliile, etapă cu etapă</h2>
-  <p class="lead muted">Fluxul din n8n are <b id="total">42</b> de noduri. Dă click pe o etapă ca să vezi ce face fiecare nod.</p>
+  <h2 class="sec">Details, stage by stage</h2>
+  <p class="lead muted">The n8n flow has <b id="total">42</b> nodes. Click a stage to see what each node does.</p>
   <div id="stages"></div>
 
-  <footer>Datele din demo (firme, persoane, site-uri) sunt fictive. Fluxul nu trimite niciun email.</footer>
+  <footer>The companies, people and sites in the demo are fictional. The flow sends no email.</footer>
 </div>
 
 <script>
 const CAT = {
   ai:    ['🤖 Claude', 'cat-ai'],     crm:   ['🧡 HubSpot', 'cat-crm'],
-  web:   ['🌐 Internet', 'cat-web'],  file:  ['📄 Fișier', 'cat-file'],
-  logic: ['⚙️ Logică n8n', 'cat-logic'], start: ['▶ Pornire', 'cat-logic']
+  web:   ['🌐 Internet', 'cat-web'],  file:  ['📄 File', 'cat-file'],
+  logic: ['⚙️ n8n logic', 'cat-logic'], start: ['▶ Start', 'cat-logic']
 };
 const stages = [
- { t:'Încărcarea listei și curățarea ei', step:2,
-   why:'Pornim flow-ul și citim fișierul CSV cu firme. Aruncăm rândurile care nu sunt firme reale.',
-   inn:'fișierul companii-demo.csv', out:'doar firme reale, un rând per firmă',
+ { t:'Loading the list and cleaning it', step:2,
+   why:'We start the flow and read the CSV file with companies. We drop the rows that are not real companies.',
+   inn:'the file companii-demo.csv', out:'real companies only, one row each',
    nodes:[
-    ['When clicking \'Execute workflow\'','start','Butonul de pornire. Flow-ul rulează doar când îl pornești manual.'],
-    ['Read/Write Files from Disk','file','Deschide fișierul CSV cu firme din folderul .n8n-files.'],
-    ['Extract from File','logic','Transformă textul din CSV în rânduri, unul pentru fiecare firmă.'],
-    ['Filtru pagini-director','logic','Elimină rândurile care sunt liste sau clasamente („Top 10 clinici...", „recenzii").']
+    ['When clicking \'Execute workflow\'','start','The start button. The flow runs only when you start it manually.'],
+    ['Read/Write Files from Disk','file','Opens the CSV file with companies from the .n8n-files folder.'],
+    ['Extract from File','logic','Turns the CSV text into rows, one per company.'],
+    ['Filtru pagini-director','logic','Drops rows that are lists or rankings ("Top 10 clinics...", "reviews").']
    ]},
- { t:'Lead scoring cu AI (scor ICP)', step:3,
-   why:'Claude Haiku citește descrierea firmei și dă o notă de la 1 la 10. Nota 6 sau mai mult = calificat.',
-   inn:'numele, site-ul și descrierea firmei', out:'scor, etichetă (calificat / necalificat), motiv',
+ { t:'AI lead scoring (ICP score)', step:3,
+   why:'Claude Haiku reads the company description and gives a grade from 1 to 10. Grade 6 or more = qualified.',
+   inn:'company name, website and description', out:'score, label (qualified / unqualified), reason',
    nodes:[
-    ['Pregateste prompt Claude','ai','Construiește instrucțiunea pentru Claude cu datele firmei și cere răspuns strict JSON. Temperatura 0, ca nota să fie stabilă.'],
-    ['Scoreaza ICP Claude','ai','Trimite instrucțiunea la Claude Haiku (model rapid și ieftin) și primește nota.'],
-    ['Interpreteaza scor si pregateste HubSpot','logic','Citește răspunsul, extrage domeniul site-ului și pregătește datele pentru HubSpot. Dacă răspunsul e ilizibil, marchează „eroare", nu inventează.']
+    ['Pregateste prompt Claude','ai','Builds the instruction for Claude with the company data and asks for a strict JSON answer. Temperature 0, so the grade is stable.'],
+    ['Scoreaza ICP Claude','ai','Sends the instruction to Claude Haiku (fast, cheap model) and receives the grade.'],
+    ['Interpreteaza scor si pregateste HubSpot','logic','Reads the answer, extracts the site domain and prepares the data for HubSpot. If the answer is unreadable it marks "error" instead of inventing.']
    ]},
- { t:'Firma intră în HubSpot (fără dubluri)', step:4,
-   why:'Înainte să creeze firma, caută dacă există deja după domeniu. Dacă există, o actualizează.',
-   inn:'domeniul și nota firmei', out:'ID-ul firmei din HubSpot',
+ { t:'The company enters HubSpot (no duplicates)', step:4,
+   why:'Before creating the company, it checks whether it already exists by domain. If it does, it updates it.',
+   inn:'domain and grade of the company', out:'the company ID in HubSpot',
    nodes:[
-    ['Cauta Company in HubSpot','crm','Caută în HubSpot o firmă cu același domeniu.'],
-    ['Decide creare sau actualizare','logic','Dacă a găsit-o, alege „actualizare"; altfel „creare".'],
-    ['Upsert Company in HubSpot','crm','Face efectiv crearea sau actualizarea și scrie nota în descrierea firmei.'],
-    ['Dupa Company pregateste','logic','Păstrează ID-ul firmei și pregătește pașii următori.']
+    ['Cauta Company in HubSpot','crm','Looks for a company with the same domain in HubSpot.'],
+    ['Decide creare sau actualizare','logic','If it found one, chooses "update"; otherwise "create".'],
+    ['Upsert Company in HubSpot','crm','Does the actual create or update and writes the grade in the company description.'],
+    ['Dupa Company pregateste','logic','Keeps the company ID and prepares the next steps.']
    ]},
- { t:'Oportunitatea de vânzare (Deal) în „Nou"', step:4,
-   why:'Fiecare firmă primește un Deal în pipeline-ul „Funnel B2B". Căutăm întâi, ca să nu apară dubluri.',
-   inn:'firma din HubSpot', out:'un Deal în etapa „Nou"',
+ { t:'The sales opportunity (Deal) in "New"', step:4,
+   why:'Each company gets a Deal in the "Funnel B2B" pipeline. We look it up first, to avoid duplicates.',
+   inn:'the company in HubSpot', out:'a Deal in the "New" stage',
    nodes:[
-    ['Cauta Deal in HubSpot','crm','Caută Deal-ul după nume (domeniu + „Funnel B2B").'],
-    ['Decide deal','logic','Alege între actualizare și creare. La actualizare nu schimbă etapa.'],
-    ['Upsert Deal (Nou)','crm','Creează Deal-ul în etapa „Nou", legat de firmă, sau îl actualizează.'],
-    ['Dupa Deal','logic','Reține ID-ul Deal-ului pentru etapele următoare.']
+    ['Cauta Deal in HubSpot','crm','Looks for the Deal by name (domain + "Funnel B2B").'],
+    ['Decide deal','logic','Chooses between update and create. On update it does not change the stage.'],
+    ['Upsert Deal (Nou)','crm','Creates the Deal in the "New" stage, linked to the company, or updates it.'],
+    ['Dupa Deal','logic','Keeps the Deal ID for the next stages.']
    ]},
- { t:'Firma e calificată?', step:4,
-   why:'Aici flow-ul se desparte. Doar firmele cu notă bună merg mai departe spre contact și ofertă.',
-   inn:'eticheta din etapa de scoring', out:'calificat: continuă · necalificat: se oprește',
-   branch:'<b>Da (calificat):</b> Deal-ul trece în „Calificat" și flow-ul continuă. <b>Nu:</b> Deal-ul rămâne în „Nou" și firma nu mai primește nimic (fără contact, fără ofertă).',
+ { t:'Is the company qualified?', step:4,
+   why:'The flow splits here. Only companies with a good score continue to contact and offer.',
+   inn:'the label from the scoring stage', out:'qualified: continues · unqualified: stops',
+   branch:'<b>Yes (qualified):</b> the Deal moves to "Qualified" and the flow continues. <b>No:</b> the Deal stays in "New" and the company gets nothing else (no contact, no offer).',
    nodes:[
-    ['Este calificat','logic','Decizie da/nu pe baza etichetei de la Claude.'],
-    ['Muta Deal in Calificat','crm','Mută Deal-ul în etapa „Calificat" din HubSpot.'],
-    ['Dupa Calificat','logic','Păstrează datele firmei pentru ramura cu contact și ofertă.']
+    ['Este calificat','logic','Yes/no decision based on the label from Claude.'],
+    ['Muta Deal in Calificat','crm','Moves the Deal to the "Qualified" stage in HubSpot.'],
+    ['Dupa Calificat','logic','Keeps the company data for the contact and offer branch.']
    ]},
- { t:'Căutarea persoanei de contact', step:5,
-   why:'Mai întâi o căutare pe internet, apoi citirea directă a site-ului firmei (pentru site-uri noi, pe care motoarele de căutare nu le cunosc încă). Claude Haiku extrage persoana de decizie. Regula: nu inventează; fără nume pe site = „negăsit".',
-   inn:'domeniul firmei calificate', out:'nume, rol, email (sau „negăsit")',
+ { t:'Finding the contact person', step:5,
+   why:'First a web search, then reading the company site directly (for new sites that search engines do not know yet). Claude Haiku extracts the decision maker. Rule: it never invents; no name on the site = "negasit".',
+   inn:'domain of the qualified company', out:'name, role, email (or "negasit")',
    nodes:[
-    ['Cauta pagini contact Firecrawl','web','Caută pe internet pagini de contact și echipă ale firmei.'],
-    ['Pregateste harta','logic','Păstrează rezultatele căutării și pregătește cererea pentru harta site-ului.',1],
-    ['Harta site Firecrawl','web','Cere lista de pagini a site-ului (o „hartă"), fără să depindă de motoarele de căutare.',1],
-    ['Pregateste pagina principala','logic','Pregătește citirea paginii principale, împreună cu linkurile din meniu.',1],
-    ['Citeste pagina principala Firecrawl','web','Citește pagina principală și lista tuturor linkurilor ei.',1],
-    ['Alege pagini','logic','Alege din linkuri pagina de contact și pe cea de echipă; dacă nu le găsește, folosește pagina principală.',1],
-    ['Citeste pagina contact Firecrawl','web','Citește pagina de contact aleasă.',1],
-    ['Citeste pagina echipa Firecrawl','web','Citește pagina de echipă aleasă.',1],
-    ['Unifica pagini contact','logic','Adună paginile din căutare și cele citite direct, fără duplicate.',1],
-    ['Pregateste prompt contact','ai','Construiește instrucțiunea: „extrage persoana de decizie din text, nu inventa nimic".'],
-    ['Extrage contact Claude','ai','Claude Haiku citește paginile și răspunde cu numele, rolul și emailul.'],
-    ['Interpreteaza contact','logic','Verifică dacă emailul e valid și marchează contactul: găsit / găsit fără email / negăsit.']
+    ['Cauta pagini contact Firecrawl','web','Searches the web for the company\'s contact and team pages.'],
+    ['Pregateste harta','logic','Keeps the search results and prepares the request for the site map.',1],
+    ['Harta site Firecrawl','web','Asks for the site\'s list of pages (a "map"), without depending on search engines.',1],
+    ['Pregateste pagina principala','logic','Prepares reading the homepage, together with the menu links.',1],
+    ['Citeste pagina principala Firecrawl','web','Reads the homepage and the list of all its links.',1],
+    ['Alege pagini','logic','Picks the contact page and the team page from the links; if it finds none, it uses the homepage.',1],
+    ['Citeste pagina contact Firecrawl','web','Reads the chosen contact page.',1],
+    ['Citeste pagina echipa Firecrawl','web','Reads the chosen team page.',1],
+    ['Unifica pagini contact','logic','Merges the pages from the search and those read directly, without duplicates.',1],
+    ['Pregateste prompt contact','ai','Builds the instruction: "extract the decision maker from this text, invent nothing".'],
+    ['Extrage contact Claude','ai','Claude Haiku reads the pages and answers with name, role and email.'],
+    ['Interpreteaza contact','logic','Checks that the email is valid and marks the contact: found / found without email / not found.']
    ]},
- { t:'Contactul intră în HubSpot', step:5,
-   why:'Dacă am găsit un contact cu email valid, îl salvăm în HubSpot și îl legăm de firmă. Dacă nu, trecem direct mai departe.',
-   inn:'contactul extras', out:'Contact în HubSpot, legat de firmă',
-   branch:'<b>Are email:</b> contactul se salvează și se leagă de firmă. <b>Nu are:</b> sare peste salvare. Cele două ramuri se întâlnesc la nodul „Unifica".',
+ { t:'The contact enters HubSpot', step:5,
+   why:'If we found a contact with a valid email, we save it in HubSpot and link it to the company. If not, we move straight on.',
+   inn:'the extracted contact', out:'Contact in HubSpot, linked to the company',
+   branch:'<b>Has email:</b> the contact is saved and linked to the company. <b>No email:</b> it skips saving. The two branches meet again at the "Unifica" node.',
    nodes:[
-    ['Are email','logic','Decizie da/nu: există un contact cu email valid?'],
-    ['Upsert Contact in HubSpot','crm','Creează sau actualizează contactul, după email (fără dubluri).'],
-    ['Prepara asociere','logic','Pregătește legătura dintre contact și firmă.'],
-    ['Asociaza Contact cu Company','crm','Leagă contactul de firmă în HubSpot.'],
-    ['Dupa asociere','logic','Păstrează datele pentru pasul următor.'],
-    ['Unifica','logic','Reunește cele două ramuri (cu și fără email) într-un singur drum.']
+    ['Are email','logic','Yes/no decision: is there a contact with a valid email?'],
+    ['Upsert Contact in HubSpot','crm','Creates or updates the contact, by email (no duplicates).'],
+    ['Prepara asociere','logic','Prepares the link between the contact and the company.'],
+    ['Asociaza Contact cu Company','crm','Links the contact to the company in HubSpot.'],
+    ['Dupa asociere','logic','Keeps the data for the next step.'],
+    ['Unifica','logic','Merges the two branches (with and without email) into a single path.']
    ]},
- { t:'Redactarea ofertei și aprobarea', step:6,
-   why:'Claude Sonnet scrie un email și o ofertă pe baza textului de pe site. Reguli stricte: fără prețuri, cifre sau clienți inventați. Prețul rămâne un loc gol, completat de om.',
-   inn:'datele firmei, nota, contactul, textul de pe site', out:'un fișier .md cu status „în așteptare"',
+ { t:'Writing the offer and approval', step:6,
+   why:'Claude Sonnet writes an email and an offer based on the text from the site. Strict rules: no invented prices, figures or customers. The price stays an empty slot, filled in by a human.',
+   inn:'company data, score, contact, site text', out:'an .md file with status "pending"',
    nodes:[
-    ['Pregateste prompt oferta','ai','Construiește instrucțiunea lungă: rolul, regulile anti-invenție, datele firmei și formatul răspunsului.'],
-    ['Scrie oferta Claude','ai','Claude Sonnet scrie subiectul, emailul, punctele sensibile și oferta.'],
-    ['Pregateste fisier aprobare','logic','Așază textul într-un fișier cu un cap de informații (firmă, scor, contact, status).'],
-    ['Salveaza oferta pentru aprobare','file','Scrie fișierul în folderul oferte-de-aprobat. Nimic nu se trimite până nu aprobă un om.']
+    ['Pregateste prompt oferta','ai','Builds the long instruction: the role, the anti-invention rules, the company data and the answer format.'],
+    ['Scrie oferta Claude','ai','Claude Sonnet writes the subject, the email, the pain points and the offer.'],
+    ['Pregateste fisier aprobare','logic','Lays the text out in a file with an information header (company, score, contact, status).'],
+    ['Salveaza oferta pentru aprobare','file','Writes the file into the oferte-de-aprobat folder. Nothing is sent until a human approves it.']
    ]},
- { t:'Actualizarea pipeline-ului: „Draft email"', step:7,
-   why:'Când oferta e scrisă, mutăm Deal-ul în HubSpot în „Draft email", ca în CRM să se vadă că există un draft de verificat.',
-   inn:'Deal-ul firmei', out:'Deal în etapa „Draft email"',
+ { t:'Updating the pipeline: "Draft email"', step:7,
+   why:'When the offer is written, we move the Deal in HubSpot to "Draft email", so the CRM shows that a draft is waiting for review.',
+   inn:'the company\'s Deal', out:'Deal in the "Draft email" stage',
    nodes:[
-    ['Prepara mutare Draft','logic','Pregătește mutarea Deal-ului în noua etapă.'],
-    ['Muta Deal in Draft email','crm','Mută Deal-ul în etapa „Draft email" din HubSpot. Aici se termină fluxul.']
+    ['Prepara mutare Draft','logic','Prepares moving the Deal to the new stage.'],
+    ['Muta Deal in Draft email','crm','Moves the Deal to the "Draft email" stage in HubSpot. The flow ends here.']
    ]}
 ];
 
@@ -285,17 +285,16 @@ const root = document.getElementById('stages');
 stages.forEach((s, i) => {
   const d = document.createElement('details');
   d.className = 'stage';
-  let h = `<summary><span>Etapa ${i+1}: ${s.t}</span><span class="pill">pasul ${s.step}</span><span class="pill">${s.nodes.length} noduri</span></summary><div class="stage-body">
-    <p class="why">${s.why}</p><p class="io"><b>Intră:</b> ${s.inn} &nbsp;·&nbsp; <b>Iese:</b> ${s.out}</p>`;
+  let h = `<summary><span>Stage ${i+1}: ${s.t}</span><span class="pill">step ${s.step}</span><span class="pill">${s.nodes.length} nodes</span></summary><div class="stage-body">
+    <p class="why">${s.why}</p><p class="io"><b>In:</b> ${s.inn} &nbsp;·&nbsp; <b>Out:</b> ${s.out}</p>`;
   if (s.branch) h += `<div class="branch">${s.branch}</div>`;
   h += '<ul class="nodes">';
   s.nodes.forEach(([name, c, desc, isNew]) => {
     n++;
     const [label, cls] = CAT[c];
     h += `<li class="node ${cls}"><span class="n">${n}</span><div>
-      <div class="nname">${name} <span class="chip">${label}</span>${isNew ? '<span class="nou">nou</span>' : ''}</div>
+      <div class="nname">${name} <span class="chip">${label}</span>${isNew ? '<span class="nou">new</span>' : ''}</div>
       <div class="ndesc">${desc}</div></div></li>`;
-    // același nod apare și sub pasul din pâlnie
     const box = document.querySelector(`.nodelist[data-step="${s.step}"]`);
     if (box) box.insertAdjacentHTML('beforeend', `<span class="nchip ${cls}"><span class="k">${n}</span>${name}</span>`);
   });
