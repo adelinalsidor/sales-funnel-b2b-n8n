@@ -8,7 +8,7 @@ From a list of companies to a **personalized, ready-to-approve offer**, with the
 
 The five agents (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-writer), with the role and prompt of each, are described in [`agents/`](agents/README.md). They run as nodes inside n8n, not as separate files.
 
-**Visual diagram** of all 42 nodes, with explanations: [`docs/schema-flux.html`](docs/schema-flux.html) (opens directly in a browser).
+**Live flow diagram** of all 42 nodes, with explanations: **[adelinalsidor.github.io/sales-funnel-b2b-n8n](https://adelinalsidor.github.io/sales-funnel-b2b-n8n/)** (source: [`docs/schema-flux.html`](docs/schema-flux.html)).
 
 > **A note on language:** the target market is Romanian SMEs, so the prompts, the n8n node names, the demo data and the generated offers are in **Romanian**. The documentation is in English.
 
