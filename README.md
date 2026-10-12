@@ -99,3 +99,8 @@ Firecrawl rulează în cloud, deci nu poate citi site-uri de pe `localhost`. De 
 - Trimitere reală de email, cu aprobare (mută Deal-ul în „Verificare și trimitere")
 - `lead-responder-agent` (răspuns la lead-uri primite)
 - Contact-finder pentru LinkedIn
+- Generare PDF de ofertă din template
+
+## Licență
+
+[MIT](LICENSE) © 2026 Adelina Sidor. Firmele, persoanele și emailurile din demo sunt fictive.
