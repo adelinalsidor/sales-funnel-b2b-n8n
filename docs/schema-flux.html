@@ -73,7 +73,8 @@
   .node { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 9px 10px; margin: 6px 0; border-radius: 8px;
           border-left: 7px solid rgb(var(--c)); background: rgba(var(--c), .10); }
   .node .n { font-size: .78rem; color: var(--muted); text-align: right; padding-top: 2px; }
-  .nname { font-family: ui-monospace, Consolas, monospace; font-size: .85rem; font-weight: 700; word-break: break-word; }
+  .nname { font-size: .95rem; font-weight: 700; word-break: break-word; }
+  .orig { font-family: ui-monospace, Consolas, monospace; font-size: .74rem; font-weight: 500; color: var(--muted); margin-left: 6px; }
   .ndesc { font-size: .92rem; margin-top: 2px; }
   .nou { background: #db2777; color: #fff; font-size: .7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-left: 4px; }
   footer { margin-top: 36px; color: var(--muted); font-size: .85rem; }
@@ -86,7 +87,7 @@
 
   <div class="brief">
     <p><b>Project goal:</b> automatically go through company data found on the internet, identify the best potential customers (AI lead scoring against the ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers that go out only after human approval.</p>
-    <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Node names are shown exactly as they appear in n8n (in Romanian, the language of the target market).</p>
+    <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Each node shows an English name and, in grey, the exact name it has in the n8n flow (Romanian, the language of the target market).</p>
   </div>
 
   <div class="legend" aria-label="Legend">
@@ -280,6 +281,49 @@ const stages = [
    ]}
 ];
 
+// English display names; the key is the exact node name in the n8n flow
+const EN = {
+  'Filtru pagini-director':'Directory-page filter',
+  'Pregateste prompt Claude':'Build scoring prompt',
+  'Scoreaza ICP Claude':'Score ICP (Claude)',
+  'Interpreteaza scor si pregateste HubSpot':'Parse score, prepare HubSpot data',
+  'Cauta Company in HubSpot':'Search Company in HubSpot',
+  'Decide creare sau actualizare':'Decide: create or update',
+  'Dupa Company pregateste':'After Company: prepare next steps',
+  'Cauta Deal in HubSpot':'Search Deal in HubSpot',
+  'Decide deal':'Decide: create or update Deal',
+  'Upsert Deal (Nou)':'Upsert Deal (New)',
+  'Dupa Deal':'After Deal',
+  'Este calificat':'Is qualified?',
+  'Muta Deal in Calificat':'Move Deal to Qualified',
+  'Dupa Calificat':'After qualified',
+  'Cauta pagini contact Firecrawl':'Search contact pages (Firecrawl)',
+  'Pregateste harta':'Prepare site-map request',
+  'Harta site Firecrawl':'Site map (Firecrawl)',
+  'Pregateste pagina principala':'Prepare homepage read',
+  'Citeste pagina principala Firecrawl':'Read homepage (Firecrawl)',
+  'Alege pagini':'Pick contact and team pages',
+  'Citeste pagina contact Firecrawl':'Read contact page (Firecrawl)',
+  'Citeste pagina echipa Firecrawl':'Read team page (Firecrawl)',
+  'Unifica pagini contact':'Merge contact pages',
+  'Pregateste prompt contact':'Build contact prompt',
+  'Extrage contact Claude':'Extract contact (Claude)',
+  'Interpreteaza contact':'Parse contact',
+  'Are email':'Has email?',
+  'Prepara asociere':'Prepare association',
+  'Asociaza Contact cu Company':'Associate Contact with Company',
+  'Dupa asociere':'After association',
+  'Unifica':'Merge branches',
+  'Pregateste prompt oferta':'Build offer prompt',
+  'Scrie oferta Claude':'Write offer (Claude)',
+  'Pregateste fisier aprobare':'Prepare approval file',
+  'Salveaza oferta pentru aprobare':'Save offer for approval',
+  'Prepara mutare Draft':'Prepare move to Draft',
+  'Muta Deal in Draft email':'Move Deal to Draft email'
+};
+const en = name => EN[name] || name;
+const origTag = name => EN[name] ? `<span class="orig">n8n: ${name}</span>` : '';
+
 let n = 0;
 const root = document.getElementById('stages');
 stages.forEach((s, i) => {
@@ -293,10 +337,10 @@ stages.forEach((s, i) => {
     n++;
     const [label, cls] = CAT[c];
     h += `<li class="node ${cls}"><span class="n">${n}</span><div>
-      <div class="nname">${name} <span class="chip">${label}</span>${isNew ? '<span class="nou">new</span>' : ''}</div>
+      <div class="nname">${en(name)}${origTag(name)} <span class="chip">${label}</span>${isNew ? '<span class="nou">new</span>' : ''}</div>
       <div class="ndesc">${desc}</div></div></li>`;
     const box = document.querySelector(`.nodelist[data-step="${s.step}"]`);
-    if (box) box.insertAdjacentHTML('beforeend', `<span class="nchip ${cls}"><span class="k">${n}</span>${name}</span>`);
+    if (box) box.insertAdjacentHTML('beforeend', `<span class="nchip ${cls}" title="n8n: ${name}"><span class="k">${n}</span>${en(name)}</span>`);
   });
   h += '</ul></div>';
   d.innerHTML = h;
