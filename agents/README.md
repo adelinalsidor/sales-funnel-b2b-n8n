@@ -34,5 +34,3 @@ companii-demo.csv
 **Why different models:** Haiku (cheap, fast) for classification and extraction, where the answer is a small JSON; Sonnet only for writing the offer, where text quality matters. `temperature: 0` on Haiku keeps the score stable between runs.
 
 **Common principles:** never invent data (contact not found = "negasit"), never send an email without human approval, deduplicate in HubSpot on every run.
-
-Original plan of the agents (in Romanian): `../output/agenti-automatizare-funnel-vanzari-b2b/plan-agenti.md`.
