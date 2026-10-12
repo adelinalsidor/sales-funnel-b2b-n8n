@@ -15,7 +15,7 @@
 
 **Output:** JSON `{"gasit": bool, "nume", "rol", "email", "telefon", "sursa"}`, then `ContactStatus`: `gasit` / `gasit-fara-email` / `negasit`. Only contacts with a valid email continue as Contacts in HubSpot.
 
-**n8n nodes:** `Search contact pages (Firecrawl)` → `Prepare site-map request` → `Site map (Firecrawl)` → `Prepare homepage read` → `Read homepage (Firecrawl)` → `Pick contact and team pages` → `Read contact page (Firecrawl)` → `Read team page (Firecrawl)` → `Merge contact pages` → `Build contact prompt` → `Extract contact (Claude)` → `Parse contact` → `Has email?`.
+**n8n nodes:** `Search contact pages (Firecrawl)` → `Prepare site-map request` → `Site map (Firecrawl)` → `Prepare homepage read` → `Read homepage (Firecrawl)` → `Pick contact and team pages` → `Read contact page (Firecrawl)` → `Read team page (Firecrawl)` → `Merge contact pages` → `Build contact prompt` → `Extract contact (Claude)` → `Parse contact` → `Has email?` → `Merge branches` (the contact upsert and association nodes in between belong to hubspot-sync).
 
 **Prompt (verbatim from the flow, in Romanian):**
 

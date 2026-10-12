@@ -28,7 +28,7 @@ companii-demo.csv
 | 1 | [prospector-agent](prospector-agent.md) | No (CSV + rules) | — | 1–4 |
 | 2 | [icp-qualifier-agent](icp-qualifier-agent.md) | Yes | Haiku 4.5 | 5–7 |
 | 3 | [hubspot-sync-agent](hubspot-sync-agent.md) | No (HubSpot API) | — | 8–18, 32–35, 41–42 |
-| 4 | [contact-finder-agent](contact-finder-agent.md) | Yes | Haiku 4.5 | 19–30 |
+| 4 | [contact-finder-agent](contact-finder-agent.md) | Yes | Haiku 4.5 | 19–31, 36 |
 | 5 | [offer-writer-agent](offer-writer-agent.md) | Yes | Sonnet 5.5 | 37–40 |
 
 **Why different models:** Haiku (cheap, fast) for classification and extraction, where the answer is a small JSON; Sonnet only for writing the offer, where text quality matters. `temperature: 0` on Haiku keeps the score stable between runs.

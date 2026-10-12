@@ -95,7 +95,7 @@
     <div class="rule"><b>1 · prospector</b>reads the company list and drops rankings and non-companies (rules, no AI) · nodes 1–4</div>
     <div class="rule"><b>2 · icp-qualifier</b>scores each company 1–10 against the ideal customer profile (Claude Haiku) · nodes 5–7</div>
     <div class="rule"><b>3 · hubspot-sync</b>creates the Company and the Deal in HubSpot, no duplicates (HubSpot API) · nodes 8–18, 32–35, 41–42</div>
-    <div class="rule"><b>4 · contact-finder</b>finds the decision maker on the company's site (Firecrawl + Claude Haiku) · nodes 19–30</div>
+    <div class="rule"><b>4 · contact-finder</b>finds the decision maker on the company's site (Firecrawl + Claude Haiku) · nodes 19–31, 36</div>
     <div class="rule"><b>5 · offer-writer</b>drafts the email and the offer for human approval (Claude Sonnet) · nodes 37–40</div>
   </div>
   <p class="muted">Each agent has one job. n8n is the conductor: it sets the order and the branches; Claude is called only where judgment or text is needed. Role, inputs, outputs and the real prompt of each agent are in the <a href="https://github.com/adelinalsidor/sales-funnel-b2b-n8n/tree/main/agents">agents/</a> folder.</p>
@@ -264,7 +264,7 @@ const stages = [
  { t:'The contact enters HubSpot', step:5,
    why:'If we found a contact with a valid email, we save it in HubSpot and link it to the company. If not, we move straight on.',
    inn:'the extracted contact', out:'Contact in HubSpot, linked to the company',
-   branch:'<b>Has email:</b> the contact is saved and linked to the company. <b>No email:</b> it skips saving. The two branches meet again at the "Unifica" node.',
+   branch:'<b>Has email:</b> the contact is saved and linked to the company. <b>No email:</b> it skips saving. The two branches meet again at the "Merge branches" node.',
    nodes:[
     ['Are email','logic','Yes/no decision: is there a contact with a valid email?'],
     ['Upsert Contact in HubSpot','crm','Creates or updates the contact, by email (no duplicates).'],
