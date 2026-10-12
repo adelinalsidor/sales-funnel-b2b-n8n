@@ -6,6 +6,8 @@ De la o listă de firme la **ofertă personalizată, scrisă și gata de aprobat
 
 Cei cinci agenți (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-writer), cu rolul și promptul fiecăruia, sunt descriși în [`agenti/`](agenti/README.md). Ei rulează ca noduri în n8n, nu ca fișiere separate.
 
+**Schema vizuală** a celor 42 de noduri, cu explicații: [`docs/schema-flux.html`](docs/schema-flux.html) (se deschide direct în browser).
+
 ## Schema fluxului
 
 ```
@@ -58,15 +60,19 @@ Fluxul exportat e în [`workflow/sales-funnel.json`](workflow/sales-funnel.json)
 - **Om în buclă:** oferta pleacă doar după ce `status` din fișier e schimbat manual în `aprobat`.
 - **Rezistent la date murdare:** apelurile externe reîncearcă o dată, iar o eroare pe o firmă nu oprește restul lotului.
 
-## Rezultate pe un set de test de 8 firme (rulare reală, numele omise)
+## Rezultate pe lista demo (8 rânduri, firme fictive)
 
 | Pas | Rezultat |
 |---|---|
-| Calificare ICP | 6 calificate, 2 necalificate (stabil pe rulări repetate) |
-| HubSpot | 8 firme și 8 Deal-uri, **fără dubluri** după mai multe rulări |
-| Deal-uri | 6 în „Draft email", 2 în „Nou" (necalificate) |
-| Contact găsit | 1 cu email, 1 fără email, 4 „negăsit" (fără invenții) |
-| Oferte | 6 draft-uri, toate cu detalii concrete de pe site-ul firmei |
+| Filtru pagini-director | 1 clasament („Top 10 clinici...") eliminat, 7 firme rămân |
+| Calificare ICP | 6 calificate; firma mare, cu chatbot deja în producție, a ieșit necalificată (2/10) |
+| HubSpot | 6 firme și 6 Deal-uri în „Draft email", **fără dubluri** după mai multe rulări |
+| Contact | 4 cu email, 1 găsit fără email, 1 „negăsit" (fără invenții) |
+| Oferte | 6 draft-uri cu detalii concrete de pe site-ul firmei, în `oferte-de-aprobat/` |
+
+## Demo cu firme fictive
+
+Firecrawl rulează în cloud, deci nu poate citi site-uri de pe `localhost`. De aceea [`demo-sites/`](demo-sites/) conține 6 site-uri mici, inventate (acasă, echipă, contact), publicate pe Vercel ca `demo-<nume>.vercel.app`. Lista de firme este în `companii-demo.csv`. Toate numele, persoanele și emailurile din demo sunt fictive.
 
 ## Cum se rulează
 
@@ -84,6 +90,8 @@ Fluxul exportat e în [`workflow/sales-funnel.json`](workflow/sales-funnel.json)
 
 - O nouă rulare **rescrie** fișierele din `oferte-de-aprobat/` și resetează `status`. Mută ofertele aprobate în altă parte.
 - Găsirea contactului depinde de ce e public pe site; LinkedIn nu e acoperit (protecție anti-scraping).
+- Firecrawl limitează numărul de cereri pe minut (eroare `429`). Nodurile care citesc site-urile trimit o cerere la 7 secunde, deci o rulare pe 8 firme durează aproximativ 5 minute.
+- Lista de firme se pregătește în afara flow-ului (în MVP nu există căutare automată pe internet în n8n).
 - Prețul din ofertă e un placeholder (`[PREȚ DE COMPLETAT]`), completat manual.
 
 ## Următorii pași

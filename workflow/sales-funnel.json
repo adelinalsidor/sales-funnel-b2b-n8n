@@ -7,21 +7,21 @@
       "typeVersion": 1,
       "position": [
         -512,
-        128
+        -8
       ],
       "id": "dc3a2369-f492-4587-bcb4-7cbe51cdd13c",
       "name": "When clicking 'Execute workflow'"
     },
     {
       "parameters": {
-        "fileSelector": "C:\\Users\\Adi\\.n8n-files\\companii-test.csv",
+        "fileSelector": "C:\\Users\\Adi\\.n8n-files\\companii-demo.csv",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -288,
-        128
+        -8
       ],
       "id": "a65e5e08-7d26-42af-8132-74d9452bc937",
       "name": "Read/Write Files from Disk"
@@ -34,7 +34,7 @@
       "typeVersion": 1.1,
       "position": [
         -64,
-        128
+        -8
       ],
       "id": "6e977c55-2c9c-43a7-bd3f-d52ffc11f3a6",
       "name": "Extract from File"
@@ -49,7 +49,7 @@
       "typeVersion": 2,
       "position": [
         160,
-        128
+        -8
       ]
     },
     {
@@ -62,7 +62,7 @@
       "typeVersion": 2,
       "position": [
         384,
-        128
+        -8
       ]
     },
     {
@@ -94,7 +94,7 @@
       "typeVersion": 4.2,
       "position": [
         608,
-        128
+        -8
       ],
       "retryOnFail": true,
       "credentials": {
@@ -115,7 +115,7 @@
       "typeVersion": 2,
       "position": [
         832,
-        128
+        -8
       ]
     },
     {
@@ -124,19 +124,19 @@
         "url": "https://api.hubapi.com/crm/v3/objects/companies/search",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._searchBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._searchBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "93e5901d-a087-410e-aeb9-066f2dcb59a5",
       "name": "Cauta Company in HubSpot",
@@ -144,18 +144,18 @@
       "typeVersion": 4.2,
       "position": [
         1056,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -167,7 +167,7 @@
       "typeVersion": 2,
       "position": [
         1280,
-        128
+        -8
       ]
     },
     {
@@ -176,19 +176,19 @@
         "url": "={{ 'https://api.hubapi.com/crm/v3/objects/companies' + ($json._companyId ? '/' + $json._companyId : '') }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._hubspotRequestBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._hubspotRequestBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "adcf6cb7-11bf-4f6f-a120-4d65dac34a1e",
       "name": "Upsert Company in HubSpot",
@@ -196,18 +196,18 @@
       "typeVersion": 4.2,
       "position": [
         1504,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -219,7 +219,7 @@
       "typeVersion": 2,
       "position": [
         1728,
-        128
+        -8
       ]
     },
     {
@@ -228,19 +228,19 @@
         "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._dealSearchBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._dealSearchBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "d910d7e3-4ca1-4cd2-890a-a6d39b04fed6",
       "name": "Cauta Deal in HubSpot",
@@ -248,18 +248,18 @@
       "typeVersion": 4.2,
       "position": [
         1952,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -271,7 +271,7 @@
       "typeVersion": 2,
       "position": [
         2176,
-        128
+        -8
       ]
     },
     {
@@ -280,19 +280,19 @@
         "url": "={{ 'https://api.hubapi.com/crm/v3/objects/deals' + ($json._dealId ? '/' + $json._dealId : '') }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._dealBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._dealBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "5107ac61-4f02-4522-9385-252228db8309",
       "name": "Upsert Deal (Nou)",
@@ -300,18 +300,18 @@
       "typeVersion": 4.2,
       "position": [
         2400,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -323,7 +323,7 @@
       "typeVersion": 2,
       "position": [
         2624,
-        128
+        -8
       ]
     },
     {
@@ -357,7 +357,7 @@
       "typeVersion": 2.2,
       "position": [
         2848,
-        128
+        -8
       ]
     },
     {
@@ -366,19 +366,19 @@
         "url": "={{ $json._dealUrl }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._dealCalificatBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._dealCalificatBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "c314eb60-0002-4db9-b078-d5a88c26fd0e",
       "name": "Muta Deal in Calificat",
@@ -386,18 +386,18 @@
       "typeVersion": 4.2,
       "position": [
         3072,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -409,7 +409,7 @@
       "typeVersion": 2,
       "position": [
         3296,
-        128
+        -8
       ]
     },
     {
@@ -418,19 +418,19 @@
         "url": "https://api.firecrawl.dev/v2/search",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._firecrawlBody }}",
         "options": {
-          "timeout": 90000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 500
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._firecrawlBody }}"
+          },
+          "timeout": 90000
+        }
       },
       "id": "3922b99c-267e-4f80-9d66-8f58fe7dc409",
       "name": "Cauta pagini contact Firecrawl",
@@ -438,18 +438,18 @@
       "typeVersion": 4.2,
       "position": [
         3520,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "gv6bkCmMqj7rz1Mh",
           "name": "Firecrawl - Bearer"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -461,7 +461,7 @@
       "typeVersion": 2,
       "position": [
         3744,
-        128
+        -8
       ]
     },
     {
@@ -470,9 +470,6 @@
         "url": "https://api.anthropic.com/v1/messages",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 60000
-        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -485,7 +482,10 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ $json._claudeContactBody }}"
+        "body": "={{ $json._claudeContactBody }}",
+        "options": {
+          "timeout": 60000
+        }
       },
       "id": "d3a92ecf-5529-4d7d-b25c-7898cf315ed6",
       "name": "Extrage contact Claude",
@@ -493,18 +493,18 @@
       "typeVersion": 4.2,
       "position": [
         3968,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "hxGEUz6ni4gnoVYM",
           "name": "Anthropic - x-api-key"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -516,7 +516,7 @@
       "typeVersion": 2,
       "position": [
         4192,
-        128
+        -8
       ]
     },
     {
@@ -550,7 +550,7 @@
       "typeVersion": 2.2,
       "position": [
         4416,
-        128
+        -8
       ]
     },
     {
@@ -559,19 +559,19 @@
         "url": "https://api.hubapi.com/crm/v3/objects/contacts/batch/upsert",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._contactBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._contactBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "9dd16522-cb3e-46ad-aff2-889c475f70e3",
       "name": "Upsert Contact in HubSpot",
@@ -579,18 +579,18 @@
       "typeVersion": 4.2,
       "position": [
         4640,
-        -72
+        -80
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -602,7 +602,7 @@
       "typeVersion": 2,
       "position": [
         4864,
-        -72
+        -80
       ]
     },
     {
@@ -612,13 +612,13 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
+          },
+          "timeout": 60000
         }
       },
       "id": "798e8e97-cd81-4d0f-9a1c-d8e6e725ea81",
@@ -627,18 +627,18 @@
       "typeVersion": 4.2,
       "position": [
         5088,
-        -72
+        -80
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -650,7 +650,7 @@
       "typeVersion": 2,
       "position": [
         5312,
-        -72
+        -80
       ]
     },
     {
@@ -661,7 +661,7 @@
       "typeVersion": 3,
       "position": [
         5536,
-        128
+        -8
       ]
     },
     {
@@ -674,7 +674,7 @@
       "typeVersion": 2,
       "position": [
         5760,
-        128
+        -8
       ]
     },
     {
@@ -683,9 +683,6 @@
         "url": "https://api.anthropic.com/v1/messages",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "options": {
-          "timeout": 120000
-        },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -698,7 +695,10 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{ $json._claudeOfertaBody }}"
+        "body": "={{ $json._claudeOfertaBody }}",
+        "options": {
+          "timeout": 120000
+        }
       },
       "id": "6e6d7bc4-8990-45b8-859b-fbd1c88fc66c",
       "name": "Scrie oferta Claude",
@@ -706,18 +706,18 @@
       "typeVersion": 4.2,
       "position": [
         5984,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "hxGEUz6ni4gnoVYM",
           "name": "Anthropic - x-api-key"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -729,14 +729,13 @@
       "typeVersion": 2,
       "position": [
         6208,
-        128
+        -8
       ]
     },
     {
       "parameters": {
         "operation": "write",
         "fileName": "={{ $json._fileName }}",
-        "dataPropertyName": "data",
         "options": {}
       },
       "id": "eda7ae35-f73d-46db-940b-22128e014843",
@@ -745,7 +744,7 @@
       "typeVersion": 1.1,
       "position": [
         6432,
-        128
+        -8
       ]
     },
     {
@@ -758,7 +757,7 @@
       "typeVersion": 2,
       "position": [
         6656,
-        128
+        -8
       ]
     },
     {
@@ -767,19 +766,19 @@
         "url": "={{ $json._dealUrl }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._dealDraftBody }}",
         "options": {
-          "timeout": 60000,
           "batching": {
             "batch": {
               "batchSize": 1,
               "batchInterval": 400
             }
-          }
-        },
-        "sendBody": true,
-        "contentType": "raw",
-        "rawContentType": "application/json",
-        "body": "={{ $json._dealDraftBody }}"
+          },
+          "timeout": 60000
+        }
       },
       "id": "a476626b-d653-4c9a-96c1-5a5154f2d176",
       "name": "Muta Deal in Draft email",
@@ -787,17 +786,225 @@
       "typeVersion": 4.2,
       "position": [
         6880,
-        128
+        -8
       ],
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 3000,
-      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "o8mNhgpm0ZQNKgoH",
           "name": "HubSpot - Bearer Token"
         }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0cc54f85-f7d8-493e-be13-9ab5dc872e72",
+      "name": "Pregateste harta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3520,
+        420
+      ],
+      "parameters": {
+        "jsCode": "// Păstrăm rezultatele căutării și pregătim cererea \"map\" (harta site-ului, fără să depindă de index)\nconst originals = $('Dupa Calificat').all();\nreturn $input.all().map((r, i) => {\n  const orig = originals[i].json;\n  const pages = (r.json && r.json.data && r.json.data.web) || [];\n  return { json: {\n    _domain: orig.Domain,\n    _searchPages: pages,\n    _mapBody: JSON.stringify({ url: 'https://' + orig.Domain, search: 'contact echipa despre noi', limit: 30 })\n  } };\n});"
+      }
+    },
+    {
+      "id": "3208d36f-3f6b-4d86-937f-cc9af78b3937",
+      "name": "Harta site Firecrawl",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3780,
+        420
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gv6bkCmMqj7rz1Mh",
+          "name": "Firecrawl - Bearer"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/map",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._mapBody }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 7000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "d44e386d-aa2c-49bb-bdc0-b10f830aa275",
+      "name": "Pregateste pagina principala",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4040,
+        420
+      ],
+      "parameters": {
+        "jsCode": "// Pregătește citirea paginii principale (cu toate linkurile, inclusiv din meniu)\nconst prev = $('Pregateste harta').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const mapLinks = ((r.json && r.json.links) || []).map(l => typeof l === 'string' ? l : (l && l.url)).filter(Boolean);\n  return { json: { _domain: p._domain, _searchPages: p._searchPages, _mapLinks: mapLinks,\n    _scrapeHome: JSON.stringify({ url: 'https://' + p._domain + '/', formats: ['markdown', 'links'], onlyMainContent: false }) } };\n});"
+      }
+    },
+    {
+      "id": "e245ac89-0d2b-4de4-83d0-a56367ec1ff2",
+      "name": "Citeste pagina principala Firecrawl",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4300,
+        420
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gv6bkCmMqj7rz1Mh",
+          "name": "Firecrawl - Bearer"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._scrapeHome }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 7000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "9ee8aad1-bded-4ca3-92f0-dae36185e8e2",
+      "name": "Alege pagini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        420
+      ],
+      "parameters": {
+        "jsCode": "// Alege pagina de contact și pe cea de echipă din linkurile găsite (harta + pagina principală)\nconst prev = $('Pregateste pagina principala').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const home = 'https://' + p._domain + '/';\n  const d = (r.json && r.json.data) || {};\n  const links = [...new Set([...(d.links || []), ...(p._mapLinks || [])])].filter(u => typeof u === 'string' && u.includes(p._domain));\n  const path = u => String(u).replace(/^https?:\\/\\/[^\\/]+/, '');\n  const contact = links.find(u => /contact|kontakt/i.test(path(u))) || home;\n  const team = links.find(u => u !== contact && /echipa|despre|about|team|noi/i.test(path(u))) || home;\n  const body = u => JSON.stringify({ url: u, formats: ['markdown'], onlyMainContent: true, maxAge: 0 });\n  return { json: { _domain: p._domain, _searchPages: p._searchPages,\n    _homeMarkdown: d.markdown || '', _u1: contact, _u2: team, _scrape1: body(contact), _scrape2: body(team) } };\n});"
+      }
+    },
+    {
+      "id": "d455ea01-ea85-4e4d-9627-22cc084c8c4e",
+      "name": "Citeste pagina contact Firecrawl",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4820,
+        420
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gv6bkCmMqj7rz1Mh",
+          "name": "Firecrawl - Bearer"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json._scrape1 }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 7000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "127b43ba-bbe6-41d4-b021-d39d881cae9e",
+      "name": "Citeste pagina echipa Firecrawl",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5080,
+        420
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 10000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gv6bkCmMqj7rz1Mh",
+          "name": "Firecrawl - Bearer"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $('Alege pagini').all()[$itemIndex].json._scrape2 }}",
+        "options": {
+          "timeout": 90000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 7000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "77165014-2acd-4052-8f97-f0722c068f1d",
+      "name": "Unifica pagini contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5340,
+        420
+      ],
+      "parameters": {
+        "jsCode": "// Unește paginile din căutare cu cele citite direct; același format ca la căutare: data.web[{url, markdown}]\nconst prev = $('Alege pagini').all();\nconst s1 = $('Citeste pagina contact Firecrawl').all();\nreturn $input.all().map((r, i) => {\n  const p = prev[i].json;\n  const web = [...(p._searchPages || [])];\n  const home = 'https://' + p._domain + '/';\n  if (p._homeMarkdown) web.push({ url: home, markdown: p._homeMarkdown });\n  const add = (resp, u) => {\n    const d = resp && resp.json && resp.json.data;\n    if (d && d.markdown) web.push({ url: (d.metadata && (d.metadata.sourceURL || d.metadata.url)) || u, markdown: d.markdown });\n  };\n  add(s1[i], p._u1);\n  add(r, p._u2);\n  const seen = new Set();\n  const out = web.filter(x => { const k = String(x.url).replace(/\\/$/, ''); if (seen.has(k)) return false; seen.add(k); return true; });\n  return { json: { data: { web: out } } };\n});"
       }
     }
   ],
@@ -1004,7 +1211,7 @@
       "main": [
         [
           {
-            "node": "Pregateste prompt contact",
+            "node": "Pregateste harta",
             "type": "main",
             "index": 0
           }
@@ -1171,9 +1378,98 @@
           }
         ]
       ]
+    },
+    "Pregateste harta": {
+      "main": [
+        [
+          {
+            "node": "Harta site Firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Harta site Firecrawl": {
+      "main": [
+        [
+          {
+            "node": "Pregateste pagina principala",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pregateste pagina principala": {
+      "main": [
+        [
+          {
+            "node": "Citeste pagina principala Firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Citeste pagina principala Firecrawl": {
+      "main": [
+        [
+          {
+            "node": "Alege pagini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alege pagini": {
+      "main": [
+        [
+          {
+            "node": "Citeste pagina contact Firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Citeste pagina contact Firecrawl": {
+      "main": [
+        [
+          {
+            "node": "Citeste pagina echipa Firecrawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Citeste pagina echipa Firecrawl": {
+      "main": [
+        [
+          {
+            "node": "Unifica pagini contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unifica pagini contact": {
+      "main": [
+        [
+          {
+            "node": "Pregateste prompt contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   }
 }
