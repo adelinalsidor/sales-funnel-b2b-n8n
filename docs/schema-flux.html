@@ -90,6 +90,16 @@
     <p class="muted"><b>Stack:</b> n8n (orchestration), Claude API (Haiku for scoring and data extraction, Sonnet for writing), Firecrawl (web search and page reading), HubSpot CRM (companies, contacts and deals in a dedicated pipeline). Node names are shown exactly as they appear in the n8n flow.</p>
   </div>
 
+  <h2 class="sec">The team of 5 agents</h2>
+  <div class="rules">
+    <div class="rule"><b>1 · prospector</b>reads the company list and drops rankings and non-companies (rules, no AI) · nodes 1–4</div>
+    <div class="rule"><b>2 · icp-qualifier</b>scores each company 1–10 against the ideal customer profile (Claude Haiku) · nodes 5–7</div>
+    <div class="rule"><b>3 · hubspot-sync</b>creates the Company and the Deal in HubSpot, no duplicates (HubSpot API) · nodes 8–18, 32–35, 41–42</div>
+    <div class="rule"><b>4 · contact-finder</b>finds the decision maker on the company's site (Firecrawl + Claude Haiku) · nodes 19–30</div>
+    <div class="rule"><b>5 · offer-writer</b>drafts the email and the offer for human approval (Claude Sonnet) · nodes 37–40</div>
+  </div>
+  <p class="muted">Each agent has one job. n8n is the conductor: it sets the order and the branches; Claude is called only where judgment or text is needed. Role, inputs, outputs and the real prompt of each agent are in the <a href="https://github.com/adelinalsidor/sales-funnel-b2b-n8n/tree/main/agents">agents/</a> folder.</p>
+
   <div class="legend" aria-label="Legend">
     <span class="cat-ai"><span class="chip">🤖 Claude (AI)</span></span>
     <span class="cat-crm"><span class="chip">🧡 HubSpot (CRM)</span></span>

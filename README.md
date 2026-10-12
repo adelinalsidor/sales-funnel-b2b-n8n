@@ -1,12 +1,22 @@
 # B2B Sales Funnel (MVP)
 
-From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
+From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way, done by a **team of 5 specialized AI agents**. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
 
 > **Status:** working end to end, from company list to a reviewed offer. It was built and tested on real companies; this public demo runs on **fictional companies and mock websites** (`companii-demo.csv`, `demo-sites/`) because real company data cannot be published. **By design nothing is sent automatically**: every offer waits for a human to approve it.
 
 **Project goal:** go through company data found on the internet, identify the best potential customers (AI lead scoring against an ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers.
 
-The five agents (prospector, icp-qualifier, hubspot-sync, contact-finder, offer-writer), with the role and prompt of each, are described in [`agents/`](agents/README.md). They run as nodes inside n8n, not as separate files.
+## The agent team
+
+| # | Agent | Role | Model |
+|---|-------|------|-------|
+| 1 | [prospector](agents/prospector-agent.md) | reads the company list, drops rankings and non-companies | rules, no AI |
+| 2 | [icp-qualifier](agents/icp-qualifier-agent.md) | scores each company 1-10 against the ideal customer profile | Claude Haiku |
+| 3 | [hubspot-sync](agents/hubspot-sync-agent.md) | creates the Company and the Deal in HubSpot, no duplicates | HubSpot API |
+| 4 | [contact-finder](agents/contact-finder-agent.md) | finds the decision maker on the company's site | Firecrawl + Claude Haiku |
+| 5 | [offer-writer](agents/offer-writer-agent.md) | drafts the email and the personalized offer, for human approval | Claude Sonnet |
+
+Each agent has one job, clear inputs and outputs, and its real prompt documented in [`agents/`](agents/README.md). They run as nodes inside n8n, not as separate files: n8n is the conductor (order, branching, HubSpot, files), and Claude is called only where judgment or text is needed.
 
 **Live flow diagram** of all 42 nodes, with explanations: **[adelinalsidor.github.io/sales-funnel-b2b-n8n](https://adelinalsidor.github.io/sales-funnel-b2b-n8n/)** (source: [`docs/schema-flux.html`](docs/schema-flux.html)).
 
@@ -74,6 +84,7 @@ The exported flow is in [`workflow/sales-funnel.json`](workflow/sales-funnel.jso
 
 - **Idempotent:** run it as many times as you like, it creates no duplicates. Companies are looked up by domain, deals by name, contacts by email.
 - **Never invents:** if the site has no name or detail, the result says "not found" / "insufficient details".
+- **One job per agent:** five small agents with clear inputs and outputs are easier to test, fix and replace than one big prompt.
 - **Right model for the job:** Haiku (cheap) for scoring and extraction, Sonnet for writing the offer. `temperature: 0` for scoring, so results are repeatable.
 - **Human in the loop:** an offer goes out only after `status` in its file is manually set to `approved`.
 - **Works on sites search engines don't know:** contact discovery combines a search with a site map and the homepage links, then reads the contact and team pages directly (cache bypassed).
