@@ -2,7 +2,7 @@
 
 From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
 
-> **Status:** working MVP. The demo in this repo runs on **fictional companies and mock websites** (`companii-demo.csv`, `demo-sites/`). **It never sends an email**: every offer waits for a human to approve it.
+> **Status:** working end to end, from company list to a reviewed offer. It was built and tested on real companies; this public demo runs on **fictional companies and mock websites** (`companii-demo.csv`, `demo-sites/`) because real company data cannot be published. **By design nothing is sent automatically**: every offer waits for a human to approve it.
 
 **Project goal:** go through company data found on the internet, identify the best potential customers (AI lead scoring against an ideal customer profile, ICP), build the CRM in HubSpot (companies, contacts, deals) and prepare personalized offers.
 
@@ -65,7 +65,11 @@ The exported flow is in [`workflow/sales-funnel.json`](workflow/sales-funnel.jso
 - **Works on sites search engines don't know:** contact discovery combines a search with a site map and the homepage links, then reads the contact and team pages directly (cache bypassed).
 - **Tolerates dirty data:** external calls retry, and an error on one company does not stop the rest of the batch.
 
-## Results on the demo list (8 rows, fictional companies)
+## Results
+
+**Development runs on real companies** (names withheld): 8 companies in, 6 qualified, 6 personalized offers drafted from each company's own website, 8 Deals in HubSpot with no duplicates over repeated runs.
+
+**Public demo (8 rows, fictional companies):**
 
 | Step | Result |
 |---|---|
