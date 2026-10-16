@@ -121,7 +121,8 @@ Firecrawl runs in the cloud, so it cannot read sites from `localhost`. That is w
 4. Open the files in `oferte-de-aprobat/` (created on the first run, git-ignored), read them and set `status`.
 
 ## Known limitations
-
+The 8-company batch is a validation set, not a volume test: compact enough to keep run time (~5 minutes) and API cost low, yet varied enough to exercise every branch of the flow: qualified and unqualified companies, contacts found with and without email, and contacts not found. Scale is limited only by the Firecrawl plan's request rate.
+  
 - A new run **overwrites** the files in `oferte-de-aprobat/` and resets `status`. Move approved offers elsewhere.
 - Contact discovery depends on what is public on the site; LinkedIn is not covered (anti-scraping protection).
 - Firecrawl rate-limits requests per minute (error `429`). The nodes that read sites send one request every 7 seconds, so a run on 8 companies takes about 5 minutes.
