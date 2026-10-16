@@ -1,6 +1,6 @@
 # B2B Sales Funnel (MVP)
 
-**5 specialized AI agents orchestrated by n8n** - score leads, build the CRM in HubSpot and draft personalized offers, with human approval before sending. From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
+**5 specialized AI agents orchestrated by n8n** - finds prospects, score leads, build the CRM in HubSpot and draft personalized offers, with human approval before sending. From a list of companies to a **personalized, ready-to-approve offer**, with the CRM updated along the way. Built with **n8n** (orchestration), **Claude** (judgment and writing), **Firecrawl** (reading websites) and **HubSpot** (CRM).
 
 > **Status:** working end to end, from company list to a reviewed offer. It was built and tested on real companies; this public demo runs on **fictional companies and mock websites** (`companii-demo.csv`, `demo-sites/`) because real company data cannot be published. **By design nothing is sent automatically**: every offer waits for a human to approve it.
 
